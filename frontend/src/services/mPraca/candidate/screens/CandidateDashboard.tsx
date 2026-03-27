@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { MPracaStackParamList } from '../../navigation/types';
@@ -21,6 +22,8 @@ export default function CandidateDashboard() {
       navigation.navigate('Preferences');
     } else if (id === 'applications') {
       navigation.navigate('MyApplications');
+    } else if (id === 'match') {
+      navigation.navigate('JobOffers');
     }
   };
 
