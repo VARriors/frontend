@@ -7,8 +7,8 @@ type Props = NativeStackScreenProps<MPracaStackParamList, 'AddCV'>;
 
 export default function AddCVScreen({ navigation }: Props) {
   const handleGenerateCV = () => {
-    // Mock - generate CV then proceed to Dashboard
-    navigation.replace('CandidateDashboard');
+    // Po wygenerowaniu CV przechodzimy do Preferencji
+    navigation.replace('Preferences');
   };
 
   return (

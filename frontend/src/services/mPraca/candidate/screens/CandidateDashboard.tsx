@@ -1,14 +1,27 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { MPracaStackParamList } from '../../navigation/types';
 
 const TILE_DATA = [
   { id: 'search', title: 'Szukaj', desc: 'Przeglądaj wszystkie oferty i filtruj', icon: '🔍', color: '#EEF2FF' },
+  { id: 'preferences', title: 'Preferencje', desc: 'Edytuj swoje branże i kryteria', icon: '⚙️', color: '#FFFBEB' },
   { id: 'match', title: 'Dopasuj', desc: 'Odkryj rekomendacje z systemem kart', icon: '✨', color: '#FFF1F2' },
   { id: 'applications', title: 'Moje Aplikacje', desc: 'Śledź statusy: 3 w toku, 1 odrzucona', icon: '📁', color: '#F0FDF4' },
-  { id: 'profile', title: 'Mój Profil', desc: 'Zarządzaj swoim zweryfikowanym CV', icon: '👤', color: '#EFF6FF' },
 ];
 
 export default function CandidateDashboard() {
+  const navigation = useNavigation<NativeStackNavigationProp<MPracaStackParamList>>();
+
+  const handleTilePress = (id: string) => {
+    if (id === 'search') {
+      navigation.navigate('JobOffers');
+    } else if (id === 'preferences') {
+      navigation.navigate('Preferences');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -30,6 +43,7 @@ export default function CandidateDashboard() {
               key={tile.id} 
               style={[styles.tile, { backgroundColor: tile.color }]} 
               activeOpacity={0.8}
+              onPress={() => handleTilePress(tile.id)}
             >
               <View style={styles.tileHeader}>
                 <Text style={styles.icon}>{tile.icon}</Text>
