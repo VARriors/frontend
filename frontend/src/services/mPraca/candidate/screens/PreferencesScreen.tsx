@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { setPreferencesCompleted } from '../../data/OnboardingState';
 
 // Kolory zgodne z design systemem mObywatel
 const MO_BLUE = '#0052A5';
@@ -36,9 +37,18 @@ export default function PreferencesScreen() {
   };
 
   const handleSave = () => {
-    // Użytkownik zapisuje preferencje. Jeśli to initial setup, nawigujemy do Dashboardu.
-    // Z Dashboardu można wejść we wszystko, a 'GoBack' również powinno działać z Dashboardu (właściwie replace).
-    navigation.navigate('CandidateDashboard');
+    // Użytkownik zapisuje preferencje
+    setPreferencesCompleted(true);
+    
+    // Resetujemy historię nawigacji, aby z Dashboardu powrót (Back) 
+    // kierował do LandingScreen, omijając ekrany CVGuard, AddCV i Preferences!
+    navigation.reset({
+      index: 1,
+      routes: [
+        { name: 'LandingPage' },
+        { name: 'CandidateDashboard' }
+      ],
+    });
   };
 
   return (
