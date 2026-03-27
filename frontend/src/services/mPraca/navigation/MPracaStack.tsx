@@ -24,18 +24,25 @@ export default function MPracaStack() {
   return (
     <Stack.Navigator
       initialRouteName="LandingPage"
-      screenOptions={{
+      screenOptions={({ navigation }) => ({
         headerStyle: { backgroundColor: '#FFFFFF' },
         headerTitleStyle: { color: '#000000', fontWeight: '500' },
-        headerTintColor: '#0052A5', // mObywatel blue
-        headerShadowVisible: false, // czysty biały wygląd
-        headerBackVisible: false, // Ukryj tekst powrotu na rzecz samej strzałki
-      }}
+        headerTintColor: '#0052A5',
+        headerShadowVisible: false,
+        headerLeft: (props) => {
+          if (!props.canGoBack) return null;
+          return (
+            <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 8, marginLeft: -8 }}>
+              <ChevronLeft size={28} color="#1F2937" />
+            </TouchableOpacity>
+          );
+        }
+      })}
     >
       <Stack.Screen 
         name="LandingPage" 
         component={LandingScreen} 
-        options={{ title: 'mPraca' }} 
+        options={{ title: 'mPraca', headerShown: true }} 
       />
       <Stack.Screen 
         name="CandidateFlow" 
@@ -50,66 +57,39 @@ export default function MPracaStack() {
       <Stack.Screen 
         name="CandidateDashboard" 
         component={CandidateDashboard} 
-        options={{ title: 'Ścieżka Kandydata', headerBackVisible: false }} 
+        options={{ title: 'Ścieżka Kandydata', headerLeft: () => null }} 
       />
       <Stack.Screen 
         name="Preferences" 
         component={PreferencesScreen} 
-        options={{ title: 'Twoje Preferencje', headerBackVisible: false }} 
+        options={{ title: 'Twoje Preferencje' }} 
       />
       <Stack.Screen 
         name="JobOffers" 
         component={JobOffersScreen} 
-        options={{ title: 'Mamy dla Ciebie Oferty!', headerBackVisible: false }} 
+        options={{ title: 'Mamy dla Ciebie Oferty!', headerLeft: () => null }} 
       />
       <Stack.Screen 
         name="JobSearch" 
         component={JobSearchScreen} 
-        options={({ navigation }) => ({ 
-          title: 'Szukaj Pracy',
-          headerShown: true,
-          headerShadowVisible: false,
-          headerLeft: () => (
-            <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 8, marginLeft: -8 }}>
-              <ChevronLeft size={28} color="#1F2937" />
-            </TouchableOpacity>
-          )
-        })} 
+        options={{ title: 'Szukaj Pracy' }} 
       />
       <Stack.Screen 
         name="MyApplications" 
         component={MyApplicationsScreen} 
-        options={({ navigation }) => ({ 
-          title: 'Moje Aplikacje',
-          headerShown: true,
-          headerShadowVisible: false,
-          headerLeft: () => (
-            <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 8, marginLeft: -8 }}>
-              <ChevronLeft size={28} color="#1F2937" />
-            </TouchableOpacity>
-          )
-        })} 
+        options={{ title: 'Moje Aplikacje' }} 
       />
       <Stack.Screen 
         name="ApplicationDetails" 
         component={ApplicationDetailsScreen} 
-        options={({ navigation }) => ({ 
-          title: 'Szczegóły Aplikacji',
-          headerShown: true,
-          headerShadowVisible: false,
-          headerLeft: () => (
-            <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 8, marginLeft: -8 }}>
-              <ChevronLeft size={28} color="#1F2937" />
-            </TouchableOpacity>
-          )
-        })} 
+        options={{ title: 'Szczegóły Aplikacji' }} 
       />
       
       {/* EMPLOYER PULLS */}
       <Stack.Screen 
         name="EmployerDashboard" 
         component={EmployerDashboard} 
-        options={{ title: 'Panel Pracodawcy', headerBackVisible: false }} 
+        options={{ title: 'Panel Pracodawcy', headerLeft: () => null }} 
       />
       <Stack.Screen 
         name="CreateJobOffer" 
