@@ -1,98 +1,79 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
-
-export default function HomeScreen() {
+export default function DocumentsScreen() {
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.header}>
+          <Image 
+            source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/God%C5%82o_Rzeczypospolitej_Polskiej.svg/330px-God%C5%82o_Rzeczypospolitej_Polskiej.svg.png' }} 
+            style={styles.logo} 
+          />
+          <Text style={styles.headerTitle}>mObywatel</Text>
+          <View style={{ flex: 1 }} />
+          <TouchableOpacity style={styles.profileBtn} activeOpacity={0.8}>
+            <Text style={styles.profileText}>JK</Text>
+          </TouchableOpacity>
+        </View>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+        <Text style={styles.greeting}>Witaj, Janie!</Text>
+
+        <TouchableOpacity style={styles.idCard} activeOpacity={0.9}>
+          <View style={styles.idHeader}>
+            <Text style={styles.idTitle}>mDowód</Text>
+            <Image 
+              source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/God%C5%82o_Rzeczypospolitej_Polskiej.svg/330px-God%C5%82o_Rzeczypospolitej_Polskiej.svg.png' }} 
+              style={styles.idEagle} 
+            />
+          </View>
+          <Text style={styles.idName}>JAN KOWALSKI</Text>
+          <Text style={styles.idDetail}>Data urodzenia: 01.01.1990</Text>
+          <View style={styles.idFooter}>
+            <Text style={styles.idPesel}>PESEL: 90010112345</Text>
+            <Ionicons name="checkmark-circle" size={24} color="#10B981" />
+          </View>
+        </TouchableOpacity>
+
+        <Text style={styles.sectionTitle}>Moje dokumenty</Text>
+        <View style={styles.documentItem}>
+          <View style={styles.docIcon}>
+            <Ionicons name="card-outline" size={24} color="#0052A5" />
+          </View>
+          <View style={styles.docText}>
+            <Text style={styles.docTitle}>mPrawo Jazdy</Text>
+            <Text style={styles.docSubtitle}>Ważne</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+        </View>
+
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
+  container: { flex: 1, backgroundColor: '#F9FAFB' },
+  content: { padding: 20 },
+  header: { flexDirection: 'row', alignItems: 'center', marginBottom: 24 },
+  logo: { width: 32, height: 32, marginRight: 12 },
+  headerTitle: { fontSize: 22, fontWeight: '700', color: '#1A1A1A' },
+  profileBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#E5E7EB', alignItems: 'center', justifyContent: 'center' },
+  profileText: { fontSize: 16, fontWeight: '700', color: '#0052A5' },
+  greeting: { fontSize: 28, fontWeight: '700', color: '#1A1A1A', marginBottom: 24 },
+  idCard: { backgroundColor: '#E53935', borderRadius: 16, padding: 24, shadowColor: '#E53935', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.25, shadowRadius: 16, elevation: 8, marginBottom: 32 },
+  idHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },
+  idTitle: { fontSize: 24, fontWeight: '800', color: '#FFFFFF' },
+  idEagle: { width: 24, height: 24, tintColor: '#FFFFFF' },
+  idName: { fontSize: 22, fontWeight: '700', color: '#FFFFFF', marginBottom: 8 },
+  idDetail: { fontSize: 14, color: '#FFCDD2', marginBottom: 24 },
+  idFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.3)', paddingTop: 16 },
+  idPesel: { fontSize: 16, fontWeight: '600', color: '#FFFFFF' },
+  sectionTitle: { fontSize: 18, fontWeight: '700', color: '#1A1A1A', marginBottom: 16 },
+  documentItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', padding: 16, borderRadius: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 },
+  docIcon: { width: 40, height: 40, borderRadius: 8, backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center', marginRight: 16 },
+  docText: { flex: 1 },
+  docTitle: { fontSize: 16, fontWeight: '600', color: '#1F2937' },
+  docSubtitle: { fontSize: 13, color: '#10B981', marginTop: 4 }
 });
