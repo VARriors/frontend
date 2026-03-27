@@ -16,9 +16,11 @@ export default function CandidateDashboard() {
 
   const handleTilePress = (id: string) => {
     if (id === 'search') {
-      navigation.navigate('JobOffers');
+      navigation.navigate('JobSearch');
     } else if (id === 'preferences') {
       navigation.navigate('Preferences');
+    } else if (id === 'applications') {
+      navigation.navigate('MyApplications');
     }
   };
 

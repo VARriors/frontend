@@ -4,6 +4,9 @@ export type MPracaStackParamList = {
   AddCV: undefined;
   Preferences: undefined;
   JobOffers: undefined;
+  JobSearch: undefined;
+  MyApplications: undefined;
+  ApplicationDetails: { applicationId?: string } | undefined;
   CandidateDashboard: undefined;
   EmployerDashboard: undefined;
   CreateJobOffer: undefined;

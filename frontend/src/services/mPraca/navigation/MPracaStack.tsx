@@ -7,6 +7,9 @@ import CandidateDashboard from '../candidate/screens/CandidateDashboard';
 import AddCVScreen from '../candidate/screens/AddCVScreen';
 import PreferencesScreen from '../candidate/screens/PreferencesScreen';
 import JobOffersScreen from '../candidate/screens/JobOffersScreen';
+import JobSearchScreen from '../candidate/screens/JobSearchScreen';
+import MyApplicationsScreen from '../candidate/screens/MyApplicationsScreen';
+import ApplicationDetailsScreen from '../candidate/screens/ApplicationDetailsScreen';
 import EmployerDashboard from '../employer/screens/EmployerDashboard';
 import CreateJobOfferScreen from '../employer/screens/CreateJobOfferScreen';
 import CandidatesListScreen from '../employer/screens/CandidatesListScreen';
@@ -56,6 +59,21 @@ export default function MPracaStack() {
         name="JobOffers" 
         component={JobOffersScreen} 
         options={{ title: 'Mamy dla Ciebie Oferty!', headerBackVisible: false }} 
+      />
+      <Stack.Screen 
+        name="JobSearch" 
+        component={JobSearchScreen} 
+        options={{ headerShown: false }} 
+      />
+      <Stack.Screen 
+        name="MyApplications" 
+        component={MyApplicationsScreen} 
+        options={{ headerShown: false }} 
+      />
+      <Stack.Screen 
+        name="ApplicationDetails" 
+        component={ApplicationDetailsScreen} 
+        options={{ headerShown: false }} 
       />
       
       {/* EMPLOYER PULLS */}

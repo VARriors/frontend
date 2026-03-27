@@ -45,6 +45,19 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <Ionicons name="ellipsis-horizontal" size={24} color={color} />,
         }}
       />
+      
+      {/* 
+        Ukryty tab dla modułu mPraca, który nie renderuje się na pasku (href: null).
+        Zapewnia to, że pasek dolny nie znika gdy będziemy korzystali z usług mPraca. 
+      */}
+      <Tabs.Screen
+        name="mPraca"
+        options={{
+          href: null,
+          title: 'mPraca',
+          headerShown: false,
+        }}
+      />
     </Tabs>
   );
 }
