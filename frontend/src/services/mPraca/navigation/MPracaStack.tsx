@@ -5,6 +5,8 @@ import LandingScreen from '../screens/LandingScreen';
 import CVGuard from '../candidate/components/CVGuard';
 import CandidateDashboard from '../candidate/screens/CandidateDashboard';
 import AddCVScreen from '../candidate/screens/AddCVScreen';
+import { TouchableOpacity } from 'react-native';
+import { ChevronLeft } from 'lucide-react-native';
 import PreferencesScreen from '../candidate/screens/PreferencesScreen';
 import JobOffersScreen from '../candidate/screens/JobOffersScreen';
 import JobSearchScreen from '../candidate/screens/JobSearchScreen';
@@ -63,17 +65,44 @@ export default function MPracaStack() {
       <Stack.Screen 
         name="JobSearch" 
         component={JobSearchScreen} 
-        options={{ headerShown: false }} 
+        options={({ navigation }) => ({ 
+          title: 'Szukaj Pracy',
+          headerShown: true,
+          headerShadowVisible: false,
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 8, marginLeft: -8 }}>
+              <ChevronLeft size={28} color="#1F2937" />
+            </TouchableOpacity>
+          )
+        })} 
       />
       <Stack.Screen 
         name="MyApplications" 
         component={MyApplicationsScreen} 
-        options={{ headerShown: false }} 
+        options={({ navigation }) => ({ 
+          title: 'Moje Aplikacje',
+          headerShown: true,
+          headerShadowVisible: false,
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 8, marginLeft: -8 }}>
+              <ChevronLeft size={28} color="#1F2937" />
+            </TouchableOpacity>
+          )
+        })} 
       />
       <Stack.Screen 
         name="ApplicationDetails" 
         component={ApplicationDetailsScreen} 
-        options={{ headerShown: false }} 
+        options={({ navigation }) => ({ 
+          title: 'Szczegóły Aplikacji',
+          headerShown: true,
+          headerShadowVisible: false,
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 8, marginLeft: -8 }}>
+              <ChevronLeft size={28} color="#1F2937" />
+            </TouchableOpacity>
+          )
+        })} 
       />
       
       {/* EMPLOYER PULLS */}

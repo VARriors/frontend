@@ -60,20 +60,7 @@ export default function JobSearchScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton} 
-          onPress={() => navigation.goBack()}
-          accessibilityRole="button"
-          accessibilityLabel="Wróć"
-        >
-          <ChevronLeft size={28} color={MO_TEXT_PRIMARY} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Szukaj Pracy</Text>
-        <View style={{ width: 44 }} />
-      </View>
-
+    <View style={styles.container}>
       <View style={styles.searchContainer}>
         <View style={styles.searchInputWrapper}>
           <Search size={20} color={MO_TEXT_SECONDARY} style={styles.searchIcon} />
@@ -135,15 +122,12 @@ export default function JobSearchScreen() {
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: MO_BG },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: MO_WHITE, borderBottomWidth: 1, borderBottomColor: MO_BORDER },
-  backButton: { padding: 8, marginLeft: -8, borderRadius: 8 },
-  headerTitle: { fontSize: 18, fontWeight: '700', color: MO_TEXT_PRIMARY },
   
   searchContainer: { flexDirection: 'row', padding: 16, backgroundColor: MO_WHITE, borderBottomWidth: 1, borderBottomColor: MO_BORDER, gap: 12 },
   searchInputWrapper: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#F3F4F6', borderRadius: 12, paddingHorizontal: 12 },
