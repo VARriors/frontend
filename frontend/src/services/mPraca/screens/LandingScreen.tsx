@@ -24,7 +24,7 @@ export default function LandingScreen({ navigation }: Props) {
 
         <TouchableOpacity 
           style={styles.secondaryButton}
-          onPress={() => console.log('Moduł Pracodawcy do zaimplementowania')}
+          onPress={() => navigation.navigate('EmployerDashboard')}
           activeOpacity={0.8}
         >
           <Text style={styles.secondaryButtonText}>Dla pracodawców</Text>

@@ -7,6 +7,10 @@ import CandidateDashboard from '../candidate/screens/CandidateDashboard';
 import AddCVScreen from '../candidate/screens/AddCVScreen';
 import PreferencesScreen from '../candidate/screens/PreferencesScreen';
 import JobOffersScreen from '../candidate/screens/JobOffersScreen';
+import EmployerDashboard from '../employer/screens/EmployerDashboard';
+import CreateJobOfferScreen from '../employer/screens/CreateJobOfferScreen';
+import CandidatesListScreen from '../employer/screens/CandidatesListScreen';
+import CandidateProfileScreen from '../employer/screens/CandidateProfileScreen';
 import type { MPracaStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<MPracaStackParamList>();
@@ -52,6 +56,28 @@ export default function MPracaStack() {
         name="JobOffers" 
         component={JobOffersScreen} 
         options={{ title: 'Mamy dla Ciebie Oferty!', headerBackVisible: false }} 
+      />
+      
+      {/* EMPLOYER PULLS */}
+      <Stack.Screen 
+        name="EmployerDashboard" 
+        component={EmployerDashboard} 
+        options={{ title: 'Panel Pracodawcy', headerBackVisible: false }} 
+      />
+      <Stack.Screen 
+        name="CreateJobOffer" 
+        component={CreateJobOfferScreen} 
+        options={{ title: 'Dodawanie Oferty' }} 
+      />
+      <Stack.Screen 
+        name="CandidatesList" 
+        component={CandidatesListScreen} 
+        options={{ title: 'Aplikacje' }} 
+      />
+      <Stack.Screen 
+        name="CandidateProfile" 
+        component={CandidateProfileScreen} 
+        options={{ title: 'Szczegóły Aplikacji' }} 
       />
     </Stack.Navigator>
   );
