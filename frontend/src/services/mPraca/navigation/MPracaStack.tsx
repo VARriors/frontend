@@ -1,29 +1,33 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-
-import LandingScreen from '../screens/LandingScreen';
-import CVGuard from '../candidate/components/CVGuard';
-import CandidateDashboard from '../candidate/screens/CandidateDashboard';
-import AddCVScreen from '../candidate/screens/AddCVScreen';
 import { TouchableOpacity } from 'react-native';
 import { ChevronLeft } from 'lucide-react-native';
+
+import CandidateCenterScreen from '../candidate/screens/CandidateCenterScreen';
+import UrzadPracyScreen from '../candidate/screens/UrzadPracyScreen';
+import EmployerDashboard from '../employer/screens/EmployerDashboard';
+import CVGuard from '../candidate/components/CVGuard';
+import AddCVScreen from '../candidate/screens/AddCVScreen';
 import PreferencesScreen from '../candidate/screens/PreferencesScreen';
-import JobOffersScreen from '../candidate/screens/JobOffersScreen';
 import JobSearchScreen from '../candidate/screens/JobSearchScreen';
 import MyApplicationsScreen from '../candidate/screens/MyApplicationsScreen';
 import ApplicationDetailsScreen from '../candidate/screens/ApplicationDetailsScreen';
-import EmployerDashboard from '../employer/screens/EmployerDashboard';
 import CreateJobOfferScreen from '../employer/screens/CreateJobOfferScreen';
 import CandidatesListScreen from '../employer/screens/CandidatesListScreen';
 import CandidateProfileScreen from '../employer/screens/CandidateProfileScreen';
+
 import type { MPracaStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<MPracaStackParamList>();
 
-export default function MPracaStack() {
+type MPracaStackProps = {
+  initialRoute?: keyof MPracaStackParamList;
+};
+
+export default function MPracaStack({ initialRoute = 'CandidateCenter' }: MPracaStackProps) {
   return (
     <Stack.Navigator
-      initialRouteName="LandingPage"
+      initialRouteName={initialRoute}
       screenOptions={({ navigation }) => ({
         headerStyle: { backgroundColor: '#FFFFFF' },
         headerTitleStyle: { color: '#000000', fontWeight: '500' },
@@ -39,10 +43,11 @@ export default function MPracaStack() {
         }
       })}
     >
+      {/* KANDYDAT */}
       <Stack.Screen 
-        name="LandingPage" 
-        component={LandingScreen} 
-        options={{ title: 'mPraca', headerShown: true }} 
+        name="CandidateCenter" 
+        component={CandidateCenterScreen} 
+        options={{ title: 'mPraca: Szukam Pracy', headerLeft: () => null }} 
       />
       <Stack.Screen 
         name="CandidateFlow" 
@@ -52,12 +57,7 @@ export default function MPracaStack() {
       <Stack.Screen 
         name="AddCV" 
         component={AddCVScreen} 
-        options={{ title: 'Dodaj CV' }} 
-      />
-      <Stack.Screen 
-        name="CandidateDashboard" 
-        component={CandidateDashboard} 
-        options={{ title: 'Ścieżka Kandydata', headerLeft: () => null }} 
+        options={{ title: 'Moje CV' }} 
       />
       <Stack.Screen 
         name="Preferences" 
@@ -65,14 +65,9 @@ export default function MPracaStack() {
         options={{ title: 'Twoje Preferencje' }} 
       />
       <Stack.Screen 
-        name="JobOffers" 
-        component={JobOffersScreen} 
-        options={{ title: 'Mamy dla Ciebie Oferty!', headerLeft: () => null }} 
-      />
-      <Stack.Screen 
         name="JobSearch" 
         component={JobSearchScreen} 
-        options={{ title: 'Szukaj Pracy' }} 
+        options={{ title: 'Wyszukiwarka Ofert' }} 
       />
       <Stack.Screen 
         name="MyApplications" 
@@ -84,8 +79,15 @@ export default function MPracaStack() {
         component={ApplicationDetailsScreen} 
         options={{ title: 'Szczegóły Aplikacji' }} 
       />
-      
-      {/* EMPLOYER PULLS */}
+
+      {/* URZĄD PRACY */}
+      <Stack.Screen 
+        name="UrzadPracy" 
+        component={UrzadPracyScreen} 
+        options={{ title: 'Państwowy Urząd Pracy', headerLeft: () => null }} 
+      />
+
+      {/* PRACODAWCA */}
       <Stack.Screen 
         name="EmployerDashboard" 
         component={EmployerDashboard} 
@@ -104,7 +106,7 @@ export default function MPracaStack() {
       <Stack.Screen 
         name="CandidateProfile" 
         component={CandidateProfileScreen} 
-        options={{ title: 'Szczegóły Aplikacji' }} 
+        options={{ title: 'Profil Kandydata' }} 
       />
     </Stack.Navigator>
   );

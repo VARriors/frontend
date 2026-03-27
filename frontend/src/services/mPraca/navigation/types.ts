@@ -1,13 +1,15 @@
 export type MPracaStackParamList = {
-  LandingPage: undefined;
-  CandidateFlow: undefined; // To go via CVGuard
+  CandidateCenter: undefined;
+  UrzadPracy: undefined;
+  
+  CandidateFlow: undefined; 
   AddCV: undefined;
   Preferences: undefined;
-  JobOffers: undefined;
+  
   JobSearch: undefined;
   MyApplications: undefined;
   ApplicationDetails: { applicationId?: string } | undefined;
-  CandidateDashboard: undefined;
+  
   EmployerDashboard: undefined;
   CreateJobOffer: undefined;
   CandidatesList: undefined;
