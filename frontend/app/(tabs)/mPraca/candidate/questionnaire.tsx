@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -45,10 +45,18 @@ import {
   WOJEWODZTWA,
   POZIOMY_JEZYKOWE,
 } from '@/src/services/mPraca/candidate/data/questionnaireSchema';
+import { QUESTIONNAIRE_DEFAULT_VALUES } from '@/src/services/mPraca/candidate/data/questionnaireMockData';
 import {
-  QUESTIONNAIRE_DEFAULT_VALUES,
-  MOCK_URZAD_PRACY_DATA,
-} from '@/src/services/mPraca/candidate/data/questionnaireMockData';
+  buildMobywatelPayload,
+  buildUrzadPracyPayload,
+  buildUserInputPayload,
+  getCandidateContext,
+  getQuestionnaire,
+  mapQuestionnaireToFormValues,
+  putMobywatel,
+  putUrzadPracy,
+  putUserInput,
+} from '@/src/services/mPraca/candidate/api/questionnaireApi';
 
 // ═══════════════════════════════════════════════════════════════════
 // GŁÓWNY EKRAN KWESTIONARIUSZA
@@ -56,10 +64,14 @@ import {
 export default function QuestionnaireScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingZUS, setIsLoadingZUS] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [candidateId, setCandidateId] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const {
     control,
     handleSubmit,
+    reset,
     setValue,
     getValues,
     formState: { errors },
@@ -76,71 +88,110 @@ export default function QuestionnaireScreen() {
   const certyfikatyArray = useFieldArray({ control, name: 'certyfikaty' });
   const aktywnoscArray = useFieldArray({ control, name: 'aktywnosc_dodatkowa' });
 
-  // ── Pobierz dane z ZUS/UP ──
-  const handleFetchFromZUS = useCallback(() => {
+  const loadQuestionnaire = useCallback(
+    async (id: string) => {
+      const questionnaire = await getQuestionnaire(id);
+      reset(mapQuestionnaireToFormValues(questionnaire));
+    },
+    [reset],
+  );
+
+  useEffect(() => {
+    let active = true;
+
+    const bootstrap = async () => {
+      setIsInitialLoading(true);
+      setLoadError(null);
+
+      try {
+        const context = await getCandidateContext();
+        if (!active) {
+          return;
+        }
+
+        setCandidateId(context.candidateId);
+        await loadQuestionnaire(context.candidateId);
+      } catch (error) {
+        if (!active) {
+          return;
+        }
+
+        const message = error instanceof Error ? error.message : 'Nie udało się pobrać danych kandydata.';
+        setLoadError(message);
+      } finally {
+        if (active) {
+          setIsInitialLoading(false);
+        }
+      }
+    };
+
+    bootstrap();
+
+    return () => {
+      active = false;
+    };
+  }, [loadQuestionnaire]);
+
+  // ── Prześlij doświadczenie do Urzędu Pracy (weryfikacja źródła) ──
+  const handleFetchFromZUS = useCallback(async () => {
+    if (!candidateId) {
+      Alert.alert('Brak kandydata', 'Nie znaleziono kontekstu kandydata.');
+      return;
+    }
+
     setIsLoadingZUS(true);
-    setTimeout(() => {
-      const existing = getValues('doswiadczenia_zawodowe') || [];
-      const merged = [...existing, ...MOCK_URZAD_PRACY_DATA.doswiadczenia_zawodowe];
-      setValue('doswiadczenia_zawodowe', merged, { shouldDirty: true });
-      setIsLoadingZUS(false);
+
+    try {
+      await putUrzadPracy(candidateId, buildUrzadPracyPayload(getValues()));
+      await loadQuestionnaire(candidateId);
       Alert.alert(
         'Sukces',
-        'Pobrano historię zatrudnienia z ZUS/Urzędu Pracy. Dane zostaną zweryfikowane automatycznie.',
+        'Historia zatrudnienia została zapisana i zweryfikowana przez Urząd Pracy.',
         [{ text: 'OK' }],
       );
-    }, 1500);
-  }, [getValues, setValue]);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Nie udało się zapisać historii zatrudnienia.';
+      Alert.alert('Błąd', message, [{ text: 'OK' }]);
+    } finally {
+      setIsLoadingZUS(false);
+    }
+  }, [candidateId, getValues, loadQuestionnaire]);
 
   // ── Submit ──
   const onSubmit = useCallback(
-    (data: QuestionnaireFormValues) => {
+    async (data: QuestionnaireFormValues) => {
+      if (!candidateId) {
+        Alert.alert('Brak kandydata', 'Nie znaleziono kontekstu kandydata.');
+        return;
+      }
+
       setIsSubmitting(true);
 
-      const mobywatelPayload = {
-        fields: {
-          imie: data.imie,
-          nazwisko: data.nazwisko,
-          pesel: data.pesel,
-          dowod: data.dowod,
-          niepelnosprawnosc: data.niepelnosprawnosc,
-        },
-      };
+      try {
+        await putMobywatel(candidateId, buildMobywatelPayload(data));
+        await putUserInput(candidateId, buildUserInputPayload(data));
+        await putUrzadPracy(candidateId, buildUrzadPracyPayload(data));
+        await loadQuestionnaire(candidateId);
 
-      const userInputPayload = {
-        fields: {
-          nr_telefonu: data.nr_telefonu,
-          email: data.email,
-          preferencje: data.preferencje,
-          obszar_poszukiwan: `${data.wojewodztwo}${data.miasto ? ', ' + data.miasto : ''}`,
-          jezyki: (data.jezyki || []).map((j) => `${j.jezyk} (${j.poziom})`),
-          szkolenia: (data.szkolenia || []).map((sz) => sz.nazwa),
-          certyfikaty: (data.certyfikaty || []).map((c) => c.nazwa),
-          aktywnosc_dodatkowa: (data.aktywnosc_dodatkowa || []).map((a) => a.opis),
-        },
-      };
-
-      const urzadPracyPayload = {
-        fields: {
-          doswiadczenia_zawodowe: data.doswiadczenia_zawodowe || [],
-        },
-      };
-
-      console.log('=== PEŁNY PAYLOAD ===');
-      console.log('mObywatel:', JSON.stringify(mobywatelPayload, null, 2));
-      console.log('User input:', JSON.stringify(userInputPayload, null, 2));
-      console.log('Urząd Pracy:', JSON.stringify(urzadPracyPayload, null, 2));
-
-      setTimeout(() => {
         setIsSubmitting(false);
         Alert.alert(
           '✅ Kwestionariusz zapisany',
           'Twoje dane zostały przesłane. Pola z mObywatela i ZUS są automatycznie zweryfikowane.',
           [{ text: 'OK' }],
         );
-      }, 1200);
+      } catch (error) {
+        setIsSubmitting(false);
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Nie udało się zapisać kwestionariusza. Spróbuj ponownie.';
+        Alert.alert('Błąd zapisu', message, [{ text: 'OK' }]);
+      }
     },
-    [],
+    [candidateId, loadQuestionnaire],
   );
 
   // ── Preferencje (toggle chip) ──
@@ -157,6 +208,19 @@ export default function QuestionnaireScreen() {
   // ═════════════════════════════════════════════════════════════════
   // RENDER
   // ═════════════════════════════════════════════════════════════════
+  if (isInitialLoading) {
+    return (
+      <SafeAreaView style={s.container} edges={['bottom']}>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 }}>
+          <ActivityIndicator size="large" color={C.primary} />
+          <Text style={{ marginTop: 12, color: C.textSecondary, textAlign: 'center' }}>
+            Ładowanie danych kandydata...
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={s.container} edges={['bottom']}>
       <ScrollView
@@ -176,6 +240,11 @@ export default function QuestionnaireScreen() {
             Uzupełnij dane, by stworzyć zweryfikowany profil w systemie mPraca.
             Pola oznaczone tarczą pobierane są z rejestrów państwowych.
           </Text>
+          {loadError ? (
+            <View style={{ marginTop: 12, backgroundColor: '#FEF2F2', borderRadius: 12, padding: 10 }}>
+              <Text style={{ color: C.danger, fontWeight: '600' }}>Błąd ładowania: {loadError}</Text>
+            </View>
+          ) : null}
         </View>
 
         {/* ═══ SEKCJA 1: DANE Z mOBYWATELA (ReadOnly) ═══ */}
@@ -365,7 +434,7 @@ export default function QuestionnaireScreen() {
               <Download size={16} color={C.primary} />
             )}
             <Text style={s.fetchButtonText}>
-              {isLoadingZUS ? 'Pobieranie...' : 'Pobierz historię z ZUS / Urzędu Pracy'}
+              {isLoadingZUS ? 'Zapisywanie...' : 'Zapisz doświadczenie do Urzędu Pracy'}
             </Text>
           </TouchableOpacity>
 
@@ -551,9 +620,9 @@ export default function QuestionnaireScreen() {
       {/* ═══ FOOTER ═══ */}
       <View style={s.footer}>
         <TouchableOpacity
-          style={[s.submitButton, isSubmitting && s.submitButtonDisabled]}
+          style={[s.submitButton, (isSubmitting || !candidateId) && s.submitButtonDisabled]}
           onPress={handleSubmit(onSubmit)}
-          disabled={isSubmitting}
+          disabled={isSubmitting || !candidateId}
           activeOpacity={0.8}
           accessibilityRole="button"
           accessibilityLabel="Zapisz kwestionariusz"
