@@ -37,6 +37,10 @@ import {
   questionnaireStyles as s,
 } from '@/src/components/questionnaire';
 
+// ── CV components ──
+import CVUpload from '@/src/services/mPraca/candidate/components/CVUpload';
+import CVExtractionPreview from '@/src/services/mPraca/candidate/components/CVExtractionPreview';
+
 // ── Data / Schema ──
 import {
   questionnaireFormSchema,
@@ -56,6 +60,9 @@ import {
   putMobywatel,
   putUrzadPracy,
   putUserInput,
+  uploadCV,
+  getCV,
+  deleteCV,
 } from '@/src/services/mPraca/candidate/api/questionnaireApi';
 
 // ═══════════════════════════════════════════════════════════════════
@@ -67,6 +74,11 @@ export default function QuestionnaireScreen() {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [candidateId, setCandidateId] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+
+  // ── CV State ──
+  const [cvData, setCvData] = useState<any>(null);
+  const [isUploadingCV, setIsUploadingCV] = useState(false);
+  const [cvUploadError, setCvUploadError] = useState<string | null>(null);
 
   const {
     control,
@@ -111,6 +123,11 @@ export default function QuestionnaireScreen() {
 
         setCandidateId(context.candidateId);
         await loadQuestionnaire(context.candidateId);
+
+        const cvInfo = await getCV(context.candidateId);
+        if (active) {
+          setCvData(cvInfo.cv);
+        }
       } catch (error) {
         if (!active) {
           return;
@@ -159,6 +176,113 @@ export default function QuestionnaireScreen() {
       setIsLoadingZUS(false);
     }
   }, [candidateId, getValues, loadQuestionnaire]);
+
+  // ── CV Upload Handler ──
+  const handleCVUpload = useCallback(
+    async (fileData: { uri: string; name: string; type: string }) => {
+      if (!candidateId) {
+        setCvUploadError('Nie znaleziono kontekstu kandydata');
+        return;
+      }
+
+      setIsUploadingCV(true);
+      setCvUploadError(null);
+
+      try {
+        const result = await uploadCV(candidateId, fileData);
+
+        // Update CV data in state
+        setCvData(result);
+
+        // Update form with extracted data if available
+        if (result.extracted_data) {
+          if (result.extracted_data.email) {
+            setValue('email', result.extracted_data.email, { shouldValidate: true });
+          }
+          if (result.extracted_data.phone) {
+            setValue('nr_telefonu', result.extracted_data.phone, { shouldValidate: true });
+          }
+        }
+
+        Alert.alert(
+          'Sukces',
+          'CV przesłane i przeanalizowane.\n\nWyekstrahowane dane zostały wyświetlone poniżej.',
+          [{ text: 'OK' }],
+        );
+
+        // Reload questionnaire to sync CV field
+        await loadQuestionnaire(candidateId);
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : 'Nie udało się przesłać CV.';
+        setCvUploadError(message);
+        Alert.alert('Błąd przesłania CV', message, [{ text: 'OK' }]);
+      } finally {
+        setIsUploadingCV(false);
+      }
+    },
+    [candidateId, setValue, loadQuestionnaire],
+  );
+
+  // ── CV Delete Handler ──
+  const handleCVDelete = useCallback(async () => {
+    if (!candidateId) {
+      Alert.alert('Błąd', 'Nie znaleziono kontekstu kandydata.');
+      return;
+    }
+
+    setIsUploadingCV(true);
+
+    try {
+      await deleteCV(candidateId);
+      setCvData(null);
+      setCvUploadError(null);
+
+      // Reload questionnaire to sync
+      await loadQuestionnaire(candidateId);
+
+      Alert.alert('Usunięte', 'CV zostało usunięte.', [{ text: 'OK' }]);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Nie udało się usunąć CV.';
+      Alert.alert('Błąd', message, [{ text: 'OK' }]);
+    } finally {
+      setIsUploadingCV(false);
+    }
+  }, [candidateId, loadQuestionnaire]);
+
+  // ── CV Auto-fill Handler ──
+  const handleCVAutoFill = useCallback(
+    (extractedData: any) => {
+      if (extractedData.email) {
+        setValue('email', extractedData.email, { shouldValidate: true, shouldDirty: true });
+      }
+      if (extractedData.phone) {
+        setValue('nr_telefonu', extractedData.phone, { shouldValidate: true, shouldDirty: true });
+      }
+
+      if (extractedData.languages && extractedData.languages.length > 0) {
+        const normalizedLanguages = extractedData.languages.map((lang: any) => {
+          const rawLevel = typeof lang?.poziom === 'string' ? lang.poziom : 'B1';
+          const normalizedLevel = POZIOMY_JEZYKOWE.includes(rawLevel as any) ? rawLevel : 'B1';
+
+          return {
+            jezyk: typeof lang?.jezyk === 'string' ? lang.jezyk : '',
+            poziom: normalizedLevel,
+          };
+        });
+
+        setValue('jezyki', normalizedLanguages, { shouldValidate: true, shouldDirty: true });
+      }
+
+      Alert.alert(
+        'Wstawione',
+        'Wyekstrahowane dane zostały wstawione do formularza.',
+        [{ text: 'OK' }],
+      );
+    },
+    [setValue],
+  );
 
   // ── Submit ──
   const onSubmit = useCallback(
@@ -328,6 +452,44 @@ export default function QuestionnaireScreen() {
               </FormField>
             )}
           />
+        </Section>
+
+        {/* ═══ SEKCJA: DOKUMENT CV (PDF) ═══ */}
+        <Section
+          title="Dokument CV"
+          subtitle="Prześlij PDF z twoim CV aby wyekstrahować dane"
+          icon={Download}
+          iconColor="#06B6D4"
+          iconBg="#ECFDF5"
+          defaultOpen={true}
+        >
+          {!cvData ? (
+            <CVUpload
+              onUpload={handleCVUpload}
+              loading={isUploadingCV}
+              onUploadStart={() => setIsUploadingCV(true)}
+              onUploadError={(error) => {
+                setCvUploadError(error);
+                setIsUploadingCV(false);
+              }}
+            />
+          ) : (
+            <CVExtractionPreview
+              extractedData={cvData.extracted_data}
+              extractionStatus={cvData.extraction_status}
+              uploadedAt={cvData.uploaded_at}
+              loading={isUploadingCV}
+              onDelete={handleCVDelete}
+              onAutoFill={handleCVAutoFill}
+            />
+          )}
+          {cvUploadError && (
+            <View style={{ marginTop: 12, backgroundColor: '#FEE2E2', borderRadius: 8, padding: 10 }}>
+              <Text style={{ color: '#DC2626', fontSize: 12, fontWeight: '500' }}>
+                Błąd: {cvUploadError}
+              </Text>
+            </View>
+          )}
         </Section>
 
         {/* ═══ PREFERENCJE BRANŻOWE ═══ */}

@@ -1,8 +1,12 @@
 import { JobOffer } from '@/src/services/mPraca/candidate/data/MockData';
 import { fetchJobs, API_BASE_URL } from '@/src/services/api';
 import { Briefcase, Search, SlidersHorizontal } from 'lucide-react-native';
-import React, { useState, useEffect } from 'react';
-import { FlatList, LayoutAnimation, Platform, StyleSheet, Text, TextInput, TouchableOpacity, UIManager, View, ActivityIndicator } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { Alert, FlatList, LayoutAnimation, Platform, StyleSheet, Text, TextInput, TouchableOpacity, UIManager, View } from 'react-native';
+import { useRouter } from 'expo-router';
+
+import CVRequirementModal from '@/src/services/mPraca/candidate/components/CVRequirementModal';
+import { validateJobCVRequirement } from '@/src/services/mPraca/candidate/api/jobRequirementsApi';
 
 // Enable LayoutAnimation for Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -17,6 +21,7 @@ const MO_BORDER = '#E5E7EB';
 const MO_BG = '#F9FAFB';
 
 export default function JobSearchScreen() {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [filtersExpanded, setFiltersExpanded] = useState(false);
   const [jobs, setJobs] = useState<JobOffer[]>([]);
@@ -42,6 +47,16 @@ export default function JobSearchScreen() {
   const [selectedTerm, setSelectedTerm] = useState('Dowolny');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
+  // CV Requirement Modal state
+  const [cvModalVisible, setCvModalVisible] = useState(false);
+  const [cvModalData, setCvModalData] = useState<{
+    jobId: string;
+    jobTitle: string;
+    requiresCV: boolean;
+    reason?: string;
+  } | null>(null);
+  const [checkingCvRequirement, setCheckingCvRequirement] = useState(false);
+
   const toggleFilters = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setFiltersExpanded(!filtersExpanded);
@@ -50,6 +65,56 @@ export default function JobSearchScreen() {
   const toggleTag = (tag: string) => {
     setSelectedTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
   };
+
+  const handleApplyPress = useCallback(
+    async (job: JobOffer) => {
+      // For demo, use a mock candidate ID
+      const candidateId = 'mock-candidate-123'; // In real app, get from context
+
+      setCheckingCvRequirement(true);
+
+      try {
+        // Check if job requires CV
+        const validation = await validateJobCVRequirement(job.id, candidateId);
+
+        if (!validation.valid) {
+          // Job requires CV but candidate doesn't have one
+          setCvModalData({
+            jobId: job.id,
+            jobTitle: job.title,
+            requiresCV: validation.requires_cv,
+            reason: validation.reason,
+          });
+          setCvModalVisible(true);
+        } else {
+          // Candidate can apply
+          Alert.alert(
+            'Aplikacja Wysłana',
+            `Twoja aplikacja na stanowisko "${job.title}" została wysłana pomyślnie!`,
+            [{ text: 'OK' }],
+          );
+          // In real app, submit application here
+        }
+      } catch (error) {
+        console.error('Error checking CV requirement:', error);
+        // Proceed with application anyway if check fails
+        Alert.alert(
+          'Aplikacja Wysłana',
+          `Twoja aplikacja na stanowisko "${job.title}" została wysłana pomyślnie!`,
+          [{ text: 'OK' }],
+        );
+      } finally {
+        setCheckingCvRequirement(false);
+      }
+    },
+    [],
+  );
+
+  const handleUploadCVFromModal = useCallback(() => {
+    setCvModalVisible(false);
+    // Navigate to questionnaire with CV section
+    router.push('/mPraca/candidate/questionnaire');
+  }, [router]);
 
   const renderOfferCard = ({ item }: { item: JobOffer }) => (
     <View style={styles.card}>
@@ -64,13 +129,20 @@ export default function JobSearchScreen() {
       </View>
       <Text style={styles.description} numberOfLines={2}>{item.description}</Text>
       
+      {/* CV Requirement Badge (mockData doesn't have it yet, but will be shown when available) */}
+      {/* In real implementation, would show: <Text style={styles.cvRequiredBadge}>📄 CV Required</Text> */}
+      
       <TouchableOpacity 
         style={styles.applyButton}
+        onPress={() => handleApplyPress(item)}
+        disabled={checkingCvRequirement}
         activeOpacity={0.8}
         accessibilityRole="button"
         accessibilityLabel={`Aplikuj na ${item.title}`}
       >
-        <Text style={styles.applyButtonText}>Aplikuj jednym kliknięciem</Text>
+        <Text style={styles.applyButtonText}>
+          {checkingCvRequirement ? 'Sprawdzanie...' : 'Aplikuj jednym kliknięciem'}
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -131,20 +203,26 @@ export default function JobSearchScreen() {
         </View>
       )}
 
-      {loading ? (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" color={MO_BLUE} />
-        </View>
-      ) : (
-        <FlatList
-          data={jobs}
-          keyExtractor={item => item.id}
-          renderItem={renderOfferCard}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={<Text style={{ textAlign: 'center', marginTop: 20 }}>Brak ofert pasujących do kryteriów.</Text>}
-        />
-      )}
+      <FlatList
+        data={mockJobOffers}
+        keyExtractor={item => item.id}
+        renderItem={renderOfferCard}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+      />
+
+      {/* CV Requirement Modal */}
+      <CVRequirementModal
+        visible={cvModalVisible}
+        jobTitle={cvModalData?.jobTitle || ''}
+        reason={cvModalData?.reason}
+        onUploadCV={handleUploadCVFromModal}
+        onCancel={() => {
+          setCvModalVisible(false);
+          setCvModalData(null);
+        }}
+        loading={checkingCvRequirement}
+      />
     </View>
   );
 }
