@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform, Alert, ActivityIndicator, Modal } from 'react-native';
 import { API_BASE_URL, fetchEmployerByNip } from '@/src/services/api';
 import { getStoredEmployerCompany, getStoredEmployerNip, resolveEmployerIdForApp, saveEmployerSession } from '@/src/services/mPraca/employer/data/EmployerSession';
 import { router } from 'expo-router';
-import { CheckCircle, X } from 'lucide-react-native';
+import { CheckCircle, X, Calendar } from 'lucide-react-native';
 
 const MO_BLUE = '#0052A5';
 const MO_WHITE = '#FFFFFF';
@@ -39,6 +39,46 @@ type FormErrors = {
   contractType?: string;
   workTime?: string;
   salary?: string;
+};
+
+const startOfDay = (date: Date) => {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  return d;
+};
+
+const toIsoDate = (date: Date) => {
+  return startOfDay(date).toISOString().slice(0, 10);
+};
+
+const buildMonthMatrix = (month: Date): Date[][] => {
+  const year = month.getFullYear();
+  const monthIndex = month.getMonth();
+  const firstOfMonth = new Date(year, monthIndex, 1);
+  const firstWeekday = (firstOfMonth.getDay() + 6) % 7; // Monday = 0
+
+  const startDate = new Date(year, monthIndex, 1 - firstWeekday);
+  const weeks: Date[][] = [];
+
+  for (let w = 0; w < 6; w++) {
+    const week: Date[] = [];
+    for (let d = 0; d < 7; d++) {
+      const cell = new Date(startDate);
+      cell.setDate(startDate.getDate() + w * 7 + d);
+      week.push(cell);
+    }
+    weeks.push(week);
+  }
+
+  return weeks;
+};
+
+const formatMonthLabel = (month: Date) => {
+  try {
+    return month.toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' });
+  } catch {
+    return `${month.getMonth() + 1}.${month.getFullYear()}`;
+  }
 };
 
 export default function CreateJobOfferScreen() {
@@ -86,6 +126,9 @@ export default function CreateJobOfferScreen() {
   const [isSuccess, setIsSuccess] = useState(false);
 
   const [errors, setErrors] = useState<FormErrors>({});
+
+  const [isDeadlineCalendarVisible, setIsDeadlineCalendarVisible] = useState(false);
+  const [calendarMonth, setCalendarMonth] = useState<Date>(() => new Date());
 
   useEffect(() => {
     const storedCompany = getStoredEmployerCompany();
@@ -880,14 +923,28 @@ export default function CreateJobOfferScreen() {
             <Text style={styles.sectionTitle}>Termin składania aplikacji</Text>
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Data ważności ogłoszenia</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="RRRR-MM-DD (np. 2024-12-31)"
-                placeholderTextColor="#9CA3AF"
-                value={applicationDeadline}
-                onChangeText={setApplicationDeadline}
-                accessibilityLabel="Pole edycji terminu składania aplikacji"
-              />
+              <TouchableOpacity
+                style={styles.dateInput}
+                onPress={() => {
+                  const base = applicationDeadline ? new Date(applicationDeadline) : new Date();
+                  setCalendarMonth(startOfDay(base));
+                  setIsDeadlineCalendarVisible(true);
+                }}
+                accessibilityRole="button"
+                accessibilityLabel="Otwórz kalendarz wyboru daty ważności ogłoszenia"
+              >
+                <View style={styles.dateInputContent}>
+                  <Calendar size={18} color={applicationDeadline ? MO_TEXT_PRIMARY : MO_TEXT_SECONDARY} style={{ marginRight: 8 }} />
+                  <Text style={applicationDeadline ? styles.dateInputText : styles.dateInputPlaceholder}>
+                    {applicationDeadline
+                      ? new Date(applicationDeadline).toLocaleDateString('pl-PL')
+                      : 'Wybierz datę z kalendarza'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+              <Text style={styles.helperText}>
+                Wybierz dzień, do którego kandydaci mogą przesyłać swoje CV.
+              </Text>
             </View>
           </View>
 
@@ -981,6 +1038,101 @@ export default function CreateJobOfferScreen() {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
+
+      <Modal
+        visible={isDeadlineCalendarVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setIsDeadlineCalendarVisible(false)}
+      >
+        <View style={styles.calendarOverlay}>
+          <View style={styles.calendarCard}>
+            <View style={styles.calendarHeader}>
+              <TouchableOpacity
+                onPress={() => {
+                  setCalendarMonth(prev => {
+                    const d = new Date(prev);
+                    d.setMonth(prev.getMonth() - 1);
+                    return d;
+                  });
+                }}
+                style={styles.calendarNavButton}
+              >
+                <Text style={styles.calendarNavText}>{'‹'}</Text>
+              </TouchableOpacity>
+              <Text style={styles.calendarHeaderTitle}>{formatMonthLabel(calendarMonth)}</Text>
+              <TouchableOpacity
+                onPress={() => {
+                  setCalendarMonth(prev => {
+                    const d = new Date(prev);
+                    d.setMonth(prev.getMonth() + 1);
+                    return d;
+                  });
+                }}
+                style={styles.calendarNavButton}
+              >
+                <Text style={styles.calendarNavText}>{'›'}</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.calendarWeekRow}>
+              {['pon', 'wto', 'śro', 'czw', 'pią', 'sob', 'nie'].map(label => (
+                <Text key={label} style={styles.calendarWeekday}>
+                  {label}
+                </Text>
+              ))}
+            </View>
+
+            {buildMonthMatrix(calendarMonth).map((week, wi) => (
+              <View key={wi} style={styles.calendarWeekRow}>
+                {week.map(day => {
+                  const today = startOfDay(new Date());
+                  const isCurrentMonth = day.getMonth() === calendarMonth.getMonth();
+                  const isPast = startOfDay(day).getTime() < today.getTime();
+                  const isSelected =
+                    !!applicationDeadline && toIsoDate(day) === applicationDeadline;
+
+                  return (
+                    <TouchableOpacity
+                      key={day.toISOString()}
+                      style={[
+                        styles.calendarDay,
+                        !isCurrentMonth && styles.calendarDayOutside,
+                        isPast && styles.calendarDayDisabled,
+                        isSelected && styles.calendarDaySelected,
+                      ]}
+                      disabled={isPast}
+                      onPress={() => {
+                        if (isPast) return;
+                        setApplicationDeadline(toIsoDate(day));
+                        setIsDeadlineCalendarVisible(false);
+                      }}
+                    >
+                      <Text
+                        style={[
+                          styles.calendarDayText,
+                          !isCurrentMonth && styles.calendarDayTextOutside,
+                          isPast && styles.calendarDayTextDisabled,
+                          isSelected && styles.calendarDayTextSelected,
+                        ]}
+                      >
+                        {day.getDate()}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            ))}
+
+            <TouchableOpacity
+              style={styles.calendarCloseButton}
+              onPress={() => setIsDeadlineCalendarVisible(false)}
+            >
+              <Text style={styles.calendarCloseText}>Zamknij</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -1213,6 +1365,28 @@ const styles = StyleSheet.create({
     marginTop: -2,
   },
 
+  dateInput: {
+    borderWidth: 1,
+    borderColor: MO_BORDER,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    backgroundColor: MO_BG,
+  },
+  dateInputContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  dateInputText: {
+    fontSize: 16,
+    color: MO_TEXT_PRIMARY,
+    fontWeight: '600',
+  },
+  dateInputPlaceholder: {
+    fontSize: 16,
+    color: MO_TEXT_SECONDARY,
+  },
+
   footer: {
     padding: 20,
     paddingBottom: 34,
@@ -1265,5 +1439,96 @@ const styles = StyleSheet.create({
     color: MO_TEXT_SECONDARY,
     textAlign: 'center',
     lineHeight: 24,
+  },
+
+  calendarOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  calendarCard: {
+    width: '100%',
+    maxWidth: 380,
+    backgroundColor: MO_WHITE,
+    borderRadius: 16,
+    padding: 16,
+  },
+  calendarHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  calendarHeaderTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: MO_TEXT_PRIMARY,
+  },
+  calendarNavButton: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  calendarNavText: {
+    fontSize: 18,
+    color: MO_TEXT_PRIMARY,
+  },
+  calendarWeekRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  calendarWeekday: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 12,
+    fontWeight: '600',
+    color: MO_TEXT_SECONDARY,
+    textTransform: 'uppercase',
+  },
+  calendarDay: {
+    flex: 1,
+    marginVertical: 2,
+    marginHorizontal: 2,
+    aspectRatio: 1,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: MO_BG,
+  },
+  calendarDayOutside: {
+    backgroundColor: '#F3F4F6',
+  },
+  calendarDayDisabled: {
+    opacity: 0.4,
+  },
+  calendarDaySelected: {
+    backgroundColor: MO_BLUE,
+  },
+  calendarDayText: {
+    fontSize: 14,
+    color: MO_TEXT_PRIMARY,
+  },
+  calendarDayTextOutside: {
+    color: '#9CA3AF',
+  },
+  calendarDayTextDisabled: {
+    color: '#9CA3AF',
+  },
+  calendarDayTextSelected: {
+    color: MO_WHITE,
+    fontWeight: '700',
+  },
+  calendarCloseButton: {
+    marginTop: 8,
+    alignSelf: 'flex-end',
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
+  calendarCloseText: {
+    fontSize: 14,
+    color: MO_TEXT_SECONDARY,
+    fontWeight: '600',
   },
 });

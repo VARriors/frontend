@@ -15,6 +15,28 @@ const MO_TEXT_SECONDARY = '#6B7280';
 const MO_BORDER = '#E5E7EB';
 const MO_BG = '#F9FAFB';
 
+const getDaysLeftLabel = (deadline?: string | null) => {
+  if (!deadline) return null;
+  try {
+    const msPerDay = 24 * 60 * 60 * 1000;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const d = new Date(deadline);
+    if (Number.isNaN(d.getTime())) return null;
+    d.setHours(0, 0, 0, 0);
+
+    const diffDays = Math.round((d.getTime() - today.getTime()) / msPerDay);
+
+    if (diffDays < 0) return 'Nabór zakończony';
+    if (diffDays === 0) return 'Ostatni dzień na aplikację';
+    if (diffDays === 1) return 'Został 1 dzień na aplikację';
+    return `Zostało ${diffDays} dni na aplikację`;
+  } catch {
+    return null;
+  }
+};
+
 export default function JobDetailsScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
@@ -256,7 +278,13 @@ export default function JobDetailsScreen() {
                     <Calendar size={18} color={MO_TEXT_SECONDARY} />
                     <View style={styles.detailItemContent}>
                         <Text style={styles.detailLabel}>Termin aplikowania</Text>
-                        <Text style={styles.detailValue}>{job.applicationDeadline}</Text>
+                        <Text style={styles.detailValue}>
+                          {new Date(job.applicationDeadline).toLocaleDateString('pl-PL')}
+                          {(() => {
+                            const label = getDaysLeftLabel(job.applicationDeadline);
+                            return label ? ` • ${label}` : '';
+                          })()}
+                        </Text>
                     </View>
                 </View>
               )}

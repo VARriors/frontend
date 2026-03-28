@@ -1,6 +1,6 @@
 import {JobOffer} from '@/src/services/mPraca/candidate/data/MockData';
 import {fetchJobs} from '@/src/services/api';
-import {Briefcase, Search, SlidersHorizontal, ChevronRight, Filter} from 'lucide-react-native';
+import {Briefcase, Search, SlidersHorizontal, ChevronRight, Filter, Calendar} from 'lucide-react-native';
 import React, {useEffect, useState, useCallback} from 'react';
 import {
   FlatList,
@@ -31,6 +31,28 @@ const MO_TEXT_PRIMARY = '#1F2937';
 const MO_TEXT_SECONDARY = '#6B7280';
 const MO_BORDER = '#E5E7EB';
 const MO_BG = '#F9FAFB';
+
+const getDaysLeftLabel = (deadline?: string | null) => {
+  if (!deadline) return null;
+  try {
+    const msPerDay = 24 * 60 * 60 * 1000;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const d = new Date(deadline);
+    if (Number.isNaN(d.getTime())) return null;
+    d.setHours(0, 0, 0, 0);
+
+    const diffDays = Math.round((d.getTime() - today.getTime()) / msPerDay);
+
+    if (diffDays < 0) return 'Nabór zakończony';
+    if (diffDays === 0) return 'Ostatni dzień na aplikację';
+    if (diffDays === 1) return 'Został 1 dzień na aplikację';
+    return `Zostało ${diffDays} dni na aplikację`;
+  } catch {
+    return null;
+  }
+};
 
 export default function JobSearchScreen() {
   const router = useRouter();
@@ -152,34 +174,48 @@ export default function JobSearchScreen() {
     });
   }, [router, selectedJobForApplication]);
 
-  const renderOfferCard = ({item}: {item: JobOffer}) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() =>
-        router.push({
-          pathname: '/mPraca/candidate/job-details/[id]',
-          params: {id: item.id},
-        })
-      }
-      activeOpacity={0.7}>
-      <View style={styles.cardContent}>
-        <View style={styles.cardMain}>
-          <Text style={styles.jobTitle}>{item.title}</Text>
-          <View style={styles.companyNameRow}>
-            <Briefcase size={14} color={MO_TEXT_SECONDARY} style={{marginRight: 4}} />
-            <Text style={styles.companyNameText}>{item.company}</Text>
-          </View>
-          <View style={styles.cardFooter}>
-            <Text style={styles.salary}>{item.salaryRange} PLN</Text>
-            <View style={styles.detailsLink}>
-              <Text style={styles.detailsText}>Zobacz szczegóły</Text>
-              <ChevronRight size={18} color={MO_BLUE} />
+  const renderOfferCard = ({item}: {item: JobOffer}) => {
+    const daysLeftLabel = getDaysLeftLabel(
+      (item as JobOffer & {applicationDeadline?: string | null}).applicationDeadline,
+    );
+
+    return (
+      <TouchableOpacity
+        style={styles.card}
+        onPress={() =>
+          router.push({
+            pathname: '/mPraca/candidate/job-details/[id]',
+            params: {id: item.id},
+          })
+        }
+        activeOpacity={0.7}>
+        <View style={styles.cardContent}>
+          <View style={styles.cardMain}>
+            <Text style={styles.jobTitle}>{item.title}</Text>
+            <View style={styles.companyNameRow}>
+              <Briefcase size={14} color={MO_TEXT_SECONDARY} style={{marginRight: 4}} />
+              <Text style={styles.companyNameText}>{item.company}</Text>
+            </View>
+            <View style={styles.cardFooter}>
+              <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
+                <Text style={styles.salary}>{item.salaryRange} PLN</Text>
+                {daysLeftLabel && (
+                  <View style={styles.deadlinePill}>
+                    <Calendar size={14} color="#C2410C" style={{marginRight: 4}} />
+                    <Text style={styles.deadlinePillText}>{daysLeftLabel}</Text>
+                  </View>
+                )}
+              </View>
+              <View style={styles.detailsLink}>
+                <Text style={styles.detailsText}>Zobacz szczegóły</Text>
+                <ChevronRight size={18} color={MO_BLUE} />
+              </View>
             </View>
           </View>
         </View>
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -437,5 +473,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: MO_BLUE,
+  },
+  deadlinePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    backgroundColor: '#FFF7ED',
+  },
+  deadlinePillText: {
+    fontSize: 12,
+    color: '#C2410C',
+    fontWeight: '600',
   },
 });
