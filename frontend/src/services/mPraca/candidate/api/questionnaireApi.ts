@@ -146,10 +146,10 @@ type UrzadPracyPayload = {
 const API_BASE_URL = (process.env.EXPO_PUBLIC_API_BASE_URL || 'http://127.0.0.1:5000')
   .replace(/\/$/, '')
   .replace(/\/api$/, '');
-const CANDIDATE_ID = process.env.EXPO_PUBLIC_CANDIDATE_ID;
+const CANDIDATE_ID = process.env.EXPO_PUBLIC_CANDIDATE_ID || '65f1a2b3c4d5e6f7a8b9c0d1';
 const CANDIDATE_ID_STORAGE_KEY = 'mpraca_candidate_id';
 
-let runtimeCandidateId = CANDIDATE_ID || '';
+let runtimeCandidateId = '65f1a2b3c4d5e6f7a8b9c0d1'; // Force using mocked candidate for now
 
 const readStoredCandidateId = () => {
   if (typeof localStorage === 'undefined') {
@@ -209,18 +209,14 @@ const asRecord = (value: unknown): Record<string, unknown> =>
   value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
 
 const getRequiredCandidateId = () => {
-  if (!runtimeCandidateId) {
-    throw new Error('Missing EXPO_PUBLIC_CANDIDATE_ID environment variable');
-  }
-  return runtimeCandidateId;
-};
+    return '65f1a2b3c4d5e6f7a8b9c0d1'; // Mocked real candidatedId
+  };
 
-const parseApiError = async (response: Response) => {
-  try {
-    const payload = await response.json();
-    if (typeof payload?.error === 'string') {
-      if (payload?.details) {
-        return `${payload.error}: ${JSON.stringify(payload.details)}`;
+  const parseApiError = async (response: Response) => {
+    try {
+      const payload = await response.json();
+      if (typeof payload?.error === 'string') {
+        if (payload?.details) {
       }
       return payload.error;
     }
