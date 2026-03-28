@@ -368,18 +368,16 @@ export default function QuestionnaireScreen() {
         await loadQuestionnaire(candidateId);
         setIsSubmitting(false);
         console.log('SHOWING ALERT NOW');
-        
-        const destinationPath = jobId ? '/(tabs)/mPraca/candidate/my-applications' : '/(tabs)/mPraca/candidate/job-search';
-        const alertMessage = jobId 
+
+        const destinationPath = jobId
+          ? '/(tabs)/mPraca/candidate/my-applications'
+          : '/(tabs)/mPraca/candidate/job-search';
+        const alertMessage = jobId
           ? 'Kwestionariusz zapisany. Aplikacja została wysłana.'
           : 'Kwestionariusz zapisany.';
-        
+
         if (Platform.OS === 'web') {
-          window.alert(
-            '✅ ' +
-              alertMessage +
-              (applyMessage ? applyMessage : ''),
-          );
+          window.alert('✅ ' + alertMessage + (applyMessage ? applyMessage : ''));
           router.replace(destinationPath);
         } else {
           Alert.alert(
@@ -409,7 +407,11 @@ export default function QuestionnaireScreen() {
 
   // ── Preferencje (toggle chip) ──
   const toggleChip = useCallback(
-    (fieldName: 'preferencje' | 'pref_typ_umowy' | 'pref_wymiar_etatu', category: string, currentValue: string | string[]) => {
+    (
+      fieldName: 'preferencje' | 'pref_typ_umowy' | 'pref_wymiar_etatu',
+      category: string,
+      currentValue: string | string[],
+    ) => {
       if (fieldName === 'preferencje') {
         const currentArr = Array.isArray(currentValue) ? currentValue : [];
         const next = currentArr.includes(category)
