@@ -4,6 +4,18 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
 
 ## Get started
 
+### Environment variables
+
+Create a `.env` file in this folder and set:
+
+```bash
+EXPO_PUBLIC_API_BASE_URL=http://127.0.0.1:5000
+EXPO_PUBLIC_CANDIDATE_ID=<mongo_candidate_object_id>
+```
+
+- `EXPO_PUBLIC_API_BASE_URL` points to Flask backend.
+- `EXPO_PUBLIC_CANDIDATE_ID` is sent as `X-Candidate-Id` for candidate context and questionnaire calls.
+
 1. Install dependencies
 
    ```bash
