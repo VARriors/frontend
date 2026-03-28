@@ -1,8 +1,7 @@
+import { useRouter } from 'expo-router';
+import { Building2, Calendar } from 'lucide-react-native';
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Platform } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import { ChevronLeft, Building2, Calendar } from 'lucide-react-native';
+import { FlatList, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const MO_BLUE = '#0052A5';
 const MO_WHITE = '#FFFFFF';
@@ -38,11 +37,11 @@ const getStatusConfig = (status: AppStatus) => {
 };
 
 export default function MyApplicationsScreen() {
-  const navigation = useNavigation<any>();
+  const router = useRouter();
   const [apps] = useState(mockApps);
 
   const handlePress = (id: string) => {
-    navigation.navigate('ApplicationDetails', { applicationId: id });
+    router.push({ pathname: '/(tabs)/mPraca/candidate/application-details', params: { applicationId: id } });
   };
 
   const renderItem = ({ item }: { item: ApplicationItem }) => {

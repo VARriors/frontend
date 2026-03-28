@@ -1,33 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import { View, ActivityIndicator, StyleSheet, Text } from 'react-native';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { MPracaStackParamList } from '../../navigation/types';
+import { useRouter } from 'expo-router';
 
-type Props = NativeStackScreenProps<MPracaStackParamList, 'CandidateFlow'>;
-
-export default function CVGuard({ navigation }: Props) {
+export default function CVGuard() {
+  const router = useRouter();
   const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    // Mockowanie sprawdzenia w bazie czy obywatel posiada wymagane CV na koncie
     const checkCV = async () => {
       setIsChecking(true);
       
-      // Symulacja np. pobierania z API statusu kandydata
       setTimeout(() => {
-        const hasCV = false; // MOCK: obecnie wymusza false, by przekierować na AddCV
+        const hasCV = false; // MOCK: wymusza false -> przekierowuje na AddCV
         setIsChecking(false);
 
         if (hasCV) {
-          navigation.replace('CandidateDashboard');
+          // Użytkownik ma CV, wracamy na stronę główną
+          router.back();
         } else {
-          navigation.replace('AddCV');
+          router.replace('/(tabs)/mPraca/candidate/add-cv');
         }
       }, 800);
     };
 
     checkCV();
-  }, [navigation]);
+  }, [router]);
 
   return (
     <View style={styles.container}>

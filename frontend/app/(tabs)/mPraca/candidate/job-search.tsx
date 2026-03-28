@@ -1,9 +1,7 @@
+import { JobOffer, mockJobOffers } from '@/src/services/mPraca/candidate/data/MockData';
+import { Briefcase, Search, SlidersHorizontal } from 'lucide-react-native';
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, FlatList, TouchableOpacity, LayoutAnimation, UIManager, Platform } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import { Search, SlidersHorizontal, ChevronLeft, MapPin, Briefcase } from 'lucide-react-native';
-import { mockJobOffers, JobOffer } from '../data/MockData';
+import { FlatList, LayoutAnimation, Platform, StyleSheet, Text, TextInput, TouchableOpacity, UIManager, View } from 'react-native';
 
 // Enable LayoutAnimation for Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -18,7 +16,6 @@ const MO_BORDER = '#E5E7EB';
 const MO_BG = '#F9FAFB';
 
 export default function JobSearchScreen() {
-  const navigation = useNavigation<any>();
   const [searchQuery, setSearchQuery] = useState('');
   const [filtersExpanded, setFiltersExpanded] = useState(false);
   

@@ -1,8 +1,6 @@
+import { Building2, CheckCircle2, Clock, Eye, MailOpen, MapPin, Send } from 'lucide-react-native';
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import { ChevronLeft, Building2, MapPin, CheckCircle2, Clock, Eye, Send, MailOpen } from 'lucide-react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 const MO_BLUE = '#0052A5';
 const MO_WHITE = '#FFFFFF';
@@ -49,8 +47,6 @@ const getEventColor = (type: string) => {
 };
 
 export default function ApplicationDetailsScreen() {
-  const navigation = useNavigation<any>();
-  // const route = useRoute(); // Można czytać parametry aplikacji
 
   return (
     <View style={styles.container}>

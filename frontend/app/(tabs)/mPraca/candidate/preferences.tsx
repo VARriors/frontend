@@ -1,7 +1,7 @@
+import { setPreferencesCompleted } from '@/src/services/mPraca/data/OnboardingState';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { setPreferencesCompleted } from '../../data/OnboardingState';
+import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 // Kolory zgodne z design systemem mObywatel
 const MO_BLUE = '#0052A5';
@@ -25,7 +25,7 @@ const CATEGORIES = [
 ];
 
 export default function PreferencesScreen() {
-  const navigation = useNavigation<any>();
+  const router = useRouter();
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   const toggleCategory = (category: string) => {
@@ -37,18 +37,9 @@ export default function PreferencesScreen() {
   };
 
   const handleSave = () => {
-    // Użytkownik zapisuje preferencje
     setPreferencesCompleted(true);
-    
-    // Resetujemy historię nawigacji, aby z Dashboardu powrót (Back) 
-    // kierował do LandingScreen, omijając ekrany CVGuard, AddCV i Preferences!
-    navigation.reset({
-      index: 1,
-      routes: [
-        { name: 'LandingPage' },
-        { name: 'CandidateDashboard' }
-      ],
-    });
+    // Po zapisaniu wracamy na główny ekran (CandidateCenter)
+    router.replace('/(tabs)/mPraca/candidate');
   };
 
   return (

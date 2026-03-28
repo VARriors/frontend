@@ -17,7 +17,7 @@ export default function ServicesScreen() {
           
           <TouchableOpacity 
             style={styles.mPracaItem} 
-            onPress={() => router.push({ pathname: '/mPraca', params: { startRoute: 'CandidateCenter' } })}
+            onPress={() => router.push('/(tabs)/mPraca/candidate')}
             activeOpacity={0.8}
           >
             <View style={[styles.mPracaIconContainer, { backgroundColor: '#EFF6FF' }]}>
@@ -32,7 +32,7 @@ export default function ServicesScreen() {
 
           <TouchableOpacity 
             style={styles.mPracaItem} 
-            onPress={() => router.push({ pathname: '/mPraca', params: { startRoute: 'UrzadPracy' } })}
+            onPress={() => router.push('/(tabs)/mPraca/bezrobotny')}
             activeOpacity={0.8}
           >
             <View style={[styles.mPracaIconContainer, { backgroundColor: '#F0FDF4' }]}>
@@ -47,7 +47,7 @@ export default function ServicesScreen() {
 
           <TouchableOpacity 
             style={styles.mPracaItem} 
-            onPress={() => router.push({ pathname: '/mPraca', params: { startRoute: 'EmployerDashboard' } })}
+            onPress={() => router.push('/(tabs)/mPraca/employer')}
             activeOpacity={0.8}
           >
             <View style={[styles.mPracaIconContainer, { backgroundColor: '#F3F4F6' }]}>
