@@ -1,11 +1,12 @@
-export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || (__DEV__ ? 'http://172.31.208.148:5000/api' : 'http://10.0.2.2:5000/api');
-import { Platform } from 'react-native';
+// export const API_BASE_URL =
+//   process.env.EXPO_PUBLIC_API_URL ||
+//   (__DEV__ ? 'http://172.31.208.148:5000/api' : 'http://10.0.2.2:5000/api');
+import {Platform} from 'react-native';
 
-const DEFAULT_API_HOST = Platform.OS === 'web' ? 'http://127.0.0.1:5000' : 'http://10.0.2.2:5000';
+const DEFAULT_API_HOST =
+  Platform.OS === 'web' ? 'http://172.31.208.148:5000' : 'http://10.0.2.2:5000';
 const RAW_API_BASE_URL =
-  process.env.EXPO_PUBLIC_API_URL ||
-  process.env.EXPO_PUBLIC_API_BASE_URL ||
-  DEFAULT_API_HOST;
+  process.env.EXPO_PUBLIC_API_URL || process.env.EXPO_PUBLIC_API_BASE_URL || DEFAULT_API_HOST;
 const NORMALIZED_API_BASE_URL = RAW_API_BASE_URL.replace(/\/$/, '');
 
 export const API_BASE_URL = NORMALIZED_API_BASE_URL.endsWith('/api')
@@ -31,7 +32,7 @@ const seedDemoCandidate = async () => {
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ create_cv: false }),
+    body: JSON.stringify({create_cv: false}),
   });
 
   if (!response.ok) {
@@ -39,7 +40,7 @@ const seedDemoCandidate = async () => {
   }
 
   try {
-    const payload = (await response.json()) as { candidate_id?: string };
+    const payload = (await response.json()) as {candidate_id?: string};
     const candidateId = typeof payload.candidate_id === 'string' ? payload.candidate_id.trim() : '';
     if (!candidateId) {
       return null;
@@ -143,14 +144,16 @@ export const fetchJob = async (id: string) => {
 
 export const fetchJobApplicants = async (employerId: string, jobId: string) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/employers/applications/${employerId}/job/${jobId}`);
+    const response = await fetch(
+      `${API_BASE_URL}/employers/applications/${employerId}/job/${jobId}`,
+    );
     if (!response.ok) {
       throw new Error(`Error fetching applicants: ${response.statusText}`);
     }
     return await response.json();
   } catch (error) {
     console.error('fetchJobApplicants Error:', error);
-    return { items: [], total: 0 };
+    return {items: [], total: 0};
   }
 };
 
@@ -175,7 +178,7 @@ export const markEmployerApplicationViewed = async (employerId: string, applicat
   }
 
   if (response.status === 409) {
-    return { status: 'VIEWED', alreadyApplied: true };
+    return {status: 'VIEWED', alreadyApplied: true};
   }
 
   return response.json();
@@ -196,9 +199,10 @@ export const setEmployerApplicationDecision = async (
       body: JSON.stringify({
         decision,
         idempotency_key: `decision-${decision.toLowerCase()}-${applicationId}`,
-        note: decision === 'ACCEPTED'
-          ? 'Moved candidate to next stage'
-          : 'Application rejected by employer',
+        note:
+          decision === 'ACCEPTED'
+            ? 'Moved candidate to next stage'
+            : 'Application rejected by employer',
       }),
     },
   );
@@ -209,7 +213,7 @@ export const setEmployerApplicationDecision = async (
   }
 
   if (response.status === 409) {
-    return { status: decision, alreadyApplied: true };
+    return {status: decision, alreadyApplied: true};
   }
 
   return response.json();
@@ -222,7 +226,9 @@ export const fetchEmployerByNip = async (nip: string) => {
       return null;
     }
 
-    const response = await fetch(`${API_BASE_URL}/employers/by-nip/${encodeURIComponent(cleanNip)}`);
+    const response = await fetch(
+      `${API_BASE_URL}/employers/by-nip/${encodeURIComponent(cleanNip)}`,
+    );
     if (!response.ok) {
       return null;
     }
@@ -234,11 +240,14 @@ export const fetchEmployerByNip = async (nip: string) => {
   }
 };
 
-export const fetchEmployerOffersWithApplications = async (employerId: string, includeEmpty = true) => {
+export const fetchEmployerOffersWithApplications = async (
+  employerId: string,
+  includeEmpty = true,
+) => {
   try {
     const includeEmptyParam = includeEmpty ? 'true' : 'false';
     const response = await fetch(
-      `${API_BASE_URL}/employers/${encodeURIComponent(employerId)}/jobs-with-applications?includeEmpty=${includeEmptyParam}`
+      `${API_BASE_URL}/employers/${encodeURIComponent(employerId)}/jobs-with-applications?includeEmpty=${includeEmptyParam}`,
     );
     if (!response.ok) {
       throw new Error(`Error fetching employer offers: ${response.statusText}`);
@@ -330,11 +339,14 @@ export const applyForJob = async (jobId: string, candidateId: string, employerId
 
 export const checkHasApplied = async (jobId: string, candidateId: string) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/candidate/applications?jobId=${jobId}&candidateId=${candidateId}`, {
-      headers: {
-        'X-Candidate-Id': candidateId,
+    const response = await fetch(
+      `${API_BASE_URL}/candidate/applications?jobId=${jobId}&candidateId=${candidateId}`,
+      {
+        headers: {
+          'X-Candidate-Id': candidateId,
+        },
       },
-    });
+    );
 
     if (!response.ok) {
       return false;
