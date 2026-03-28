@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { Briefcase, FileText, Search, Settings } from 'lucide-react-native';
+import { Briefcase, ClipboardList, FileText, Search, Settings } from 'lucide-react-native';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -39,6 +39,20 @@ export default function CandidateCenterScreen() {
 
         <Text style={styles.sectionTitle}>Mój Profil Kandydata</Text>
         <View style={styles.listContainer}>
+
+          <TouchableOpacity 
+            style={styles.listItem}
+            onPress={() => router.push('/(tabs)/mPraca/candidate/questionnaire')}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.listIconBg, { backgroundColor: '#F0F9FF' }]}>
+              <ClipboardList size={24} color="#0284C7" />
+            </View>
+            <View style={styles.listTextContainer}>
+              <Text style={styles.listTitle}>Profil / Kwestionariusz</Text>
+              <Text style={styles.listSubtitle}>Uzupełnij dane z rejestrów i stwórz zweryfikowany profil</Text>
+            </View>
+          </TouchableOpacity>
 
           <TouchableOpacity 
             style={styles.listItem}
