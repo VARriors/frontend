@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 const MO_BLUE = '#0052A5';
 const MO_WHITE = '#FFFFFF';
@@ -22,10 +23,12 @@ const REQUIREMENTS: RegRequirement[] = [
 ];
 
 export default function CreateJobOfferScreen() {
+  const navigation = useNavigation<any>();
   const [title, setTitle] = useState('');
   const [salary, setSalary] = useState('');
   const [description, setDescription] = useState('');
-  
+  const [loading, setLoading] = useState(false);
+
   const [priorities, setPriorities] = useState<Record<string, Priority>>({
     krk: 'Obojętne',
     sanepid: 'Obojętne',
@@ -36,20 +39,51 @@ export default function CreateJobOfferScreen() {
     setPriorities((prev) => ({ ...prev, [reqId]: value }));
   };
 
-  const handleSave = () => {
-    // Tutaj mockowanie zapisu do bazy mPraca
-    console.log('Zapisano ofertę:', { title, salary, description, priorities });
-    // navigation.goBack()
+  const handleSave = async () => {
+    if (!title) {
+      Alert.alert("Błąd", "Tytuł stanowiska jest wymagany.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch('http://localhost:5000/api/employers/jobs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title,
+          salary,
+          description,
+          priorities,
+          employer_id: "65f1a2b3c4d5e6f7a8b9c0e2", // Mockowany ID pracodawcy
+          createdAt: new Date().toISOString(),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Błąd podczas publikowania oferty');
+      }
+
+      Alert.alert("Sukces", "Oferta została opublikowana.");
+      navigation.goBack();
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Błąd", "Nie udało się opublikować oferty. Spróbuj ponownie.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView 
-        style={styles.keyboardView} 
+      <KeyboardAvoidingView
+        style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-          
+
           <Text style={styles.pageTitle}>Nowa Oferta mPraca</Text>
 
           <View style={styles.inputGroup}>
@@ -93,11 +127,11 @@ export default function CreateJobOfferScreen() {
           <View style={styles.prioritiesSection}>
             <Text style={styles.sectionTitle}>Priorytety Pracodawcy (AI Match)</Text>
             <Text style={styles.sectionSubtitle}>Zdecyduj, które państwowe cechy są kluczowe. System AI mObywatel przefiltruje dziesiątki CV w kilka sekund poszukując tych flag.</Text>
-            
+
             {REQUIREMENTS.map((req) => (
               <View key={req.id} style={styles.priorityRow}>
                 <Text style={styles.priorityLabel}>{req.label}</Text>
-                
+
                 <View style={styles.segmentedControl}>
                   {(['Obojętne', 'Przydatne', 'Krytyczne'] as Priority[]).map((level) => {
                     const isActive = priorities[req.id] === level;
@@ -105,7 +139,7 @@ export default function CreateJobOfferScreen() {
                       <TouchableOpacity
                         key={level}
                         style={[
-                          styles.segmentButton, 
+                          styles.segmentButton,
                           isActive && styles.segmentActive,
                           isActive && level === 'Krytyczne' && { backgroundColor: '#FEE2E2', borderColor: '#F87171' }, // Czerwony nacisk
                           isActive && level === 'Przydatne' && { backgroundColor: '#FEF3C7', borderColor: '#FBBF24' }, // Żółty nacisk
@@ -133,14 +167,17 @@ export default function CreateJobOfferScreen() {
 
         </ScrollView>
         <View style={styles.footer}>
-          <TouchableOpacity 
-            style={styles.saveButton}
+          <TouchableOpacity
+            style={[styles.saveButton, loading && { opacity: 0.7 }]}
             onPress={handleSave}
+            disabled={loading}
             activeOpacity={0.8}
             accessibilityRole="button"
             accessibilityLabel="Opublikuj ofertę pracy"
           >
-            <Text style={styles.saveButtonText}>Opublikuj za pomocą Profilu Firmy</Text>
+            <Text style={styles.saveButtonText}>
+              {loading ? 'Publikowanie...' : 'Opublikuj za pomocą Profilu Firmy'}
+            </Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -153,7 +190,7 @@ const styles = StyleSheet.create({
   keyboardView: { flex: 1 },
   scrollContent: { padding: 20, paddingBottom: 60 },
   pageTitle: { fontSize: 26, fontWeight: '800', color: MO_TEXT_PRIMARY, marginBottom: 24 },
-  
+
   inputGroup: { marginBottom: 20 },
   label: { fontSize: 14, fontWeight: '600', color: MO_TEXT_PRIMARY, marginBottom: 8 },
   input: {
@@ -170,14 +207,14 @@ const styles = StyleSheet.create({
     minHeight: 120,
     paddingTop: 14,
   },
-  
+
   prioritiesSection: { marginTop: 16, borderTopWidth: 1, borderTopColor: '#F3F4F6', paddingTop: 24 },
   sectionTitle: { fontSize: 18, fontWeight: '700', color: MO_TEXT_PRIMARY, marginBottom: 4 },
   sectionSubtitle: { fontSize: 13, color: MO_TEXT_SECONDARY, lineHeight: 18, marginBottom: 20 },
-  
+
   priorityRow: { marginBottom: 24 },
   priorityLabel: { fontSize: 15, fontWeight: '600', color: MO_TEXT_PRIMARY, marginBottom: 12 },
-  
+
   segmentedControl: {
     flexDirection: 'row',
     backgroundColor: '#F3F4F6',

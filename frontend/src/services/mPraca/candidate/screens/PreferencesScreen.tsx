@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { setPreferencesCompleted } from '../../data/OnboardingState';
 
@@ -27,28 +27,54 @@ const CATEGORIES = [
 export default function PreferencesScreen() {
   const navigation = useNavigation<any>();
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const toggleCategory = (category: string) => {
-    setSelectedCategories((prev) => 
-      prev.includes(category) 
+    setSelectedCategories((prev) =>
+      prev.includes(category)
         ? prev.filter((c) => c !== category)
         : [...prev, category]
     );
   };
 
-  const handleSave = () => {
-    // Użytkownik zapisuje preferencje
-    setPreferencesCompleted(true);
-    
-    // Resetujemy historię nawigacji, aby z Dashboardu powrót (Back) 
-    // kierował do LandingScreen, omijając ekrany CVGuard, AddCV i Preferences!
-    navigation.reset({
-      index: 1,
-      routes: [
-        { name: 'LandingPage' },
-        { name: 'CandidateDashboard' }
-      ],
-    });
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      // Dla potrzeb hackathonu używamy stałego ID kandydata (Jan Kowalski)
+      const candidateId = "65f1a2b3c4d5e6f7a8b9c0d1";
+
+      const response = await fetch(`http://localhost:5000/api/candidates/questionnaire/${candidateId}/user-input`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fields: {
+            preferencje: selectedCategories,
+          }
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Błąd podczas zapisywania preferencji');
+      }
+
+      // Użytkownik zapisuje preferencje lokalnie
+      setPreferencesCompleted(true);
+
+      // Resetujemy historię nawigacji
+      navigation.reset({
+        index: 0,
+        routes: [
+          { name: 'CandidateCenter' }
+        ],
+      });
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Błąd", "Nie udało się zapisać preferencji. Spróbuj ponownie.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -85,13 +111,16 @@ export default function PreferencesScreen() {
 
       <View style={styles.footer}>
         <TouchableOpacity
-          style={styles.saveButton}
+          style={[styles.saveButton, loading && { opacity: 0.7 }]}
           activeOpacity={0.8}
           onPress={handleSave}
+          disabled={loading}
           accessibilityRole="button"
           accessibilityLabel="Zapisz i przejdź do ofert"
         >
-          <Text style={styles.saveButtonText}>Zapisz i przejdź do ofert</Text>
+          <Text style={styles.saveButtonText}>
+            {loading ? 'Zapisywanie...' : 'Zapisz i przejdź do ofert'}
+          </Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

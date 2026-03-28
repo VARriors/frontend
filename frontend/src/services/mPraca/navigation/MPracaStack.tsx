@@ -25,6 +25,8 @@ type MPracaStackProps = {
 };
 
 export default function MPracaStack({ initialRoute = 'CandidateCenter' }: MPracaStackProps) {
+  // Przekazujemy initialRouteName do Navigatora, ale React Navigation czasem keszuje stany stosów.
+  // Dzięki użyciu 'key' w komponencie nadrzędnym (MPracaEntryPoint), ten komponent zostanie zamontowany na nowo.
   return (
     <Stack.Navigator
       initialRouteName={initialRoute}
@@ -44,69 +46,69 @@ export default function MPracaStack({ initialRoute = 'CandidateCenter' }: MPraca
       })}
     >
       {/* KANDYDAT */}
-      <Stack.Screen 
-        name="CandidateCenter" 
-        component={CandidateCenterScreen} 
-        options={{ title: 'mPraca: Szukam Pracy', headerLeft: () => null }} 
+      <Stack.Screen
+        name="CandidateCenter"
+        component={CandidateCenterScreen}
+        options={{ title: 'mPraca: Szukam Pracy', headerLeft: () => null }}
       />
-      <Stack.Screen 
-        name="CandidateFlow" 
-        component={CVGuard} 
-        options={{ headerShown: false }} 
+      <Stack.Screen
+        name="CandidateFlow"
+        component={CVGuard}
+        options={{ headerShown: false }}
       />
-      <Stack.Screen 
-        name="AddCV" 
-        component={AddCVScreen} 
-        options={{ title: 'Moje CV' }} 
+      <Stack.Screen
+        name="AddCV"
+        component={AddCVScreen}
+        options={{ title: 'Moje CV' }}
       />
-      <Stack.Screen 
-        name="Preferences" 
-        component={PreferencesScreen} 
-        options={{ title: 'Twoje Preferencje' }} 
+      <Stack.Screen
+        name="Preferences"
+        component={PreferencesScreen}
+        options={{ title: 'Twoje Preferencje' }}
       />
-      <Stack.Screen 
-        name="JobSearch" 
-        component={JobSearchScreen} 
-        options={{ title: 'Wyszukiwarka Ofert' }} 
+      <Stack.Screen
+        name="JobSearch"
+        component={JobSearchScreen}
+        options={{ title: 'Wyszukiwarka Ofert' }}
       />
-      <Stack.Screen 
-        name="MyApplications" 
-        component={MyApplicationsScreen} 
-        options={{ title: 'Moje Aplikacje' }} 
+      <Stack.Screen
+        name="MyApplications"
+        component={MyApplicationsScreen}
+        options={{ title: 'Moje Aplikacje' }}
       />
-      <Stack.Screen 
-        name="ApplicationDetails" 
-        component={ApplicationDetailsScreen} 
-        options={{ title: 'Szczegóły Aplikacji' }} 
+      <Stack.Screen
+        name="ApplicationDetails"
+        component={ApplicationDetailsScreen}
+        options={{ title: 'Szczegóły Aplikacji' }}
       />
 
       {/* URZĄD PRACY */}
-      <Stack.Screen 
-        name="UrzadPracy" 
-        component={UrzadPracyScreen} 
-        options={{ title: 'Państwowy Urząd Pracy', headerLeft: () => null }} 
+      <Stack.Screen
+        name="UrzadPracy"
+        component={UrzadPracyScreen}
+        options={{ title: 'Państwowy Urząd Pracy', headerLeft: () => null }}
       />
 
       {/* PRACODAWCA */}
-      <Stack.Screen 
-        name="EmployerDashboard" 
-        component={EmployerDashboard} 
-        options={{ title: 'Panel Pracodawcy', headerLeft: () => null }} 
+      <Stack.Screen
+        name="EmployerDashboard"
+        component={EmployerDashboard}
+        options={{ title: 'Panel Pracodawcy', headerLeft: () => null }}
       />
-      <Stack.Screen 
-        name="CreateJobOffer" 
-        component={CreateJobOfferScreen} 
-        options={{ title: 'Dodawanie Oferty' }} 
+      <Stack.Screen
+        name="CreateJobOffer"
+        component={CreateJobOfferScreen}
+        options={{ title: 'Dodawanie Oferty' }}
       />
-      <Stack.Screen 
-        name="CandidatesList" 
-        component={CandidatesListScreen} 
-        options={{ title: 'Aplikacje' }} 
+      <Stack.Screen
+        name="CandidatesList"
+        component={CandidatesListScreen}
+        options={{ title: 'Aplikacje' }}
       />
-      <Stack.Screen 
-        name="CandidateProfile" 
-        component={CandidateProfileScreen} 
-        options={{ title: 'Profil Kandydata' }} 
+      <Stack.Screen
+        name="CandidateProfile"
+        component={CandidateProfileScreen}
+        options={{ title: 'Profil Kandydata' }}
       />
     </Stack.Navigator>
   );

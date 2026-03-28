@@ -12,14 +12,14 @@ export default function CVGuard({ navigation }: Props) {
     // Mockowanie sprawdzenia w bazie czy obywatel posiada wymagane CV na koncie
     const checkCV = async () => {
       setIsChecking(true);
-      
+
       // Symulacja np. pobierania z API statusu kandydata
       setTimeout(() => {
         const hasCV = false; // MOCK: obecnie wymusza false, by przekierować na AddCV
         setIsChecking(false);
 
         if (hasCV) {
-          navigation.replace('CandidateDashboard');
+          navigation.replace('JobSearch');
         } else {
           navigation.replace('AddCV');
         }

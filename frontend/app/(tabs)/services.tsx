@@ -10,14 +10,14 @@ export default function ServicesScreen() {
         <Text style={styles.title}>Usługi dla Obywatela</Text>
       </View>
       <ScrollView contentContainerStyle={styles.content}>
-        
+
         {/* SEKCJA MPRACA */}
         <Text style={styles.sectionTitleMain}>mPraca (NOWOŚĆ)</Text>
         <View style={styles.mPracaList}>
-          
-          <TouchableOpacity 
-            style={styles.mPracaItem} 
-            onPress={() => router.push({ pathname: '/mPraca', params: { startRoute: 'CandidateCenter' } })}
+
+          <TouchableOpacity
+            style={styles.mPracaItem}
+            onPress={() => router.replace({ pathname: '/mPraca', params: { startRoute: 'CandidateCenter' } })}
             activeOpacity={0.8}
           >
             <View style={[styles.mPracaIconContainer, { backgroundColor: '#EFF6FF' }]}>
@@ -30,9 +30,9 @@ export default function ServicesScreen() {
             <Ionicons name="chevron-forward" size={24} color="#D1D5DB" />
           </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={styles.mPracaItem} 
-            onPress={() => router.push({ pathname: '/mPraca', params: { startRoute: 'UrzadPracy' } })}
+          <TouchableOpacity
+            style={styles.mPracaItem}
+            onPress={() => router.replace({ pathname: '/mPraca', params: { startRoute: 'UrzadPracy' } })}
             activeOpacity={0.8}
           >
             <View style={[styles.mPracaIconContainer, { backgroundColor: '#F0FDF4' }]}>
@@ -45,9 +45,9 @@ export default function ServicesScreen() {
             <Ionicons name="chevron-forward" size={24} color="#D1D5DB" />
           </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={styles.mPracaItem} 
-            onPress={() => router.push({ pathname: '/mPraca', params: { startRoute: 'EmployerDashboard' } })}
+          <TouchableOpacity
+            style={styles.mPracaItem}
+            onPress={() => router.replace({ pathname: '/mPraca', params: { startRoute: 'EmployerDashboard' } })}
             activeOpacity={0.8}
           >
             <View style={[styles.mPracaIconContainer, { backgroundColor: '#F3F4F6' }]}>
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
   header: { padding: 20, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' },
   title: { fontSize: 24, fontWeight: '700', color: '#1A1A1A' },
   content: { padding: 20 },
-  
+
   sectionTitleMain: { fontSize: 20, fontWeight: '800', color: '#0052A5', marginBottom: 12 },
   mPracaList: { marginBottom: 32 },
   mPracaItem: {
