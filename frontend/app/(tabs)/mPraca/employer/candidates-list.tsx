@@ -1,7 +1,8 @@
-import { CandidateApplication, mockCandidates } from '@/src/services/mPraca/employer/data/EmployerMockData';
-import { useLocalSearchParams } from 'expo-router';
-import React, { useMemo, useState } from 'react';
-import { Platform, SafeAreaView, SectionList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { CandidateApplication } from '@/src/services/mPraca/employer/data/EmployerMockData';
+import { fetchJobApplicants } from '@/src/services/api';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useMemo, useState, useEffect } from 'react';
+import { Platform, SafeAreaView, SectionList, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 
 const MO_BLUE = '#0052A5';
 const MO_WHITE = '#FFFFFF';
@@ -37,24 +38,60 @@ const renderBadges = (item: CandidateApplication) => {
 };
 
 export default function CandidatesListScreen() {
-  const { jobTitle } = useLocalSearchParams<{ jobTitle?: string }>();
-  const [candidates, setCandidates] = useState<CandidateApplication[]>(mockCandidates);
+  const router = useRouter();
+  const { jobId, jobTitle } = useLocalSearchParams<{ jobId?: string; jobTitle?: string }>();
+  const [candidates, setCandidates] = useState<CandidateApplication[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadApplicants = async () => {
+      if (!jobId) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const employerId = 'mock-employer-1';
+        const data = await fetchJobApplicants(employerId, jobId);
+
+        const mappedCandidates: CandidateApplication[] = data.items.map((item: any) => ({
+          id: item.applicationId,
+          candidateId: item.candidateId,
+          name: `${item.candidate.firstName || ''} ${item.candidate.lastName || ''}`.trim() || 'Anonimowy Kandydat',
+          title: jobTitle || 'Kandydat',
+          summary: item.candidate.email || 'Brak danych kontaktowych',
+          fullCvText: '',
+          hasSanepid: false,
+          cleanCriminalRecord: true,
+          hasDrivingLicense: false,
+          aiMatchScore: Math.floor(Math.random() * 40) + 60, // Mocked score for now
+          status: item.status,
+        }));
+
+        setCandidates(mappedCandidates);
+      } catch (error) {
+        console.error('Error loading applicants:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadApplicants();
+  }, [jobId, jobTitle]);
 
   const headerTitle = useMemo(
-    () => jobTitle || 'Senior React Native Developer',
+    () => jobTitle || 'Oferta pracy',
     [jobTitle]
   );
 
-  const handleCandidatePress = (id: string, currentStatus: string) => {
-    if (currentStatus === 'UNREAD') {
-      setCandidates((prev) =>
-        prev.map((c) => (c.id === id ? { ...c, status: 'VIEWED' } : c))
-      );
-
-      console.log(`markAsViewed(${id}) wywołane`);
-    }
-
-    // TODO: nawigacja do szczegółów kandydata
+  const handleCandidatePress = (id: string, candidateId: string | undefined, currentStatus: string) => {
+    // Navigate to profile
+    router.push({
+      pathname: '/mPraca/employer/candidate-profile',
+      params: {
+        applicationId: id,
+        candidateId: candidateId
+      }
+    });
   };
 
   const aiMatchList = candidates
@@ -76,7 +113,7 @@ export default function CandidatesListScreen() {
       <TouchableOpacity
         style={[styles.card, isUnread && styles.cardUnread]}
         activeOpacity={0.8}
-        onPress={() => handleCandidatePress(item.id, item.status)}
+        onPress={() => handleCandidatePress(item.id, (item as any).candidateId, item.status)}
       >
         <View style={styles.cardHeader}>
           <View style={styles.nameRow}>
@@ -119,6 +156,14 @@ export default function CandidatesListScreen() {
       </TouchableOpacity>
     );
   };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={MO_BLUE} />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>

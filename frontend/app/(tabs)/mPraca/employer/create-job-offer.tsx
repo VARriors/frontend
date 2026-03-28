@@ -60,6 +60,7 @@ export default function CreateJobOfferScreen() {
   const [languages, setLanguages] = useState<string[]>([]);
   const [extraLanguages, setExtraLanguages] = useState<string[]>([]);
   const [newLanguageName, setNewLanguageName] = useState('');
+  const [description, setDescription] = useState('');
   const [expectations, setExpectations] = useState('');
   const [customTags, setCustomTags] = useState<string[]>([]);
   const [newTagName, setNewTagName] = useState('');
@@ -170,10 +171,18 @@ export default function CreateJobOfferScreen() {
           company: companyName,
           location: companyLocation,
           category: '',
-          description: expectations,
+          description: description,
           salaryRange: salary,
           required_skills: languages,
-          employment_type: contractType
+          employment_type: contractType,
+          work_time: workTime,
+          work_mode: workMode,
+          position_level: positionLevel,
+          min_experience: minExperience,
+          min_education: minEducationLevel,
+          languages: [...languages, ...extraLanguages],
+          expectations: expectations,
+          tags: selectedTags,
         }),
       });
 
@@ -211,12 +220,12 @@ export default function CreateJobOfferScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView 
-        style={styles.keyboardView} 
+      <KeyboardAvoidingView
+        style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-          
+
           <Text style={styles.pageTitle}>Nowa Oferta mPraca</Text>
 
           {/* 1. Stanowisko */}
@@ -634,14 +643,32 @@ export default function CreateJobOfferScreen() {
             </View>
           </View>
 
-          {/* Twoje oczekiwania */}
+          {/* 12. Opis stanowiska */}
           <View style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>12. Twoje oczekiwania</Text>
+            <Text style={styles.sectionTitle}>12. Opis stanowiska</Text>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Napisz krótko, na czym polega praca</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                placeholder="np. Przygotowywanie dań kuchni polskiej, obsługa gości restauracji..."
+                placeholderTextColor="#9CA3AF"
+                value={description}
+                onChangeText={setDescription}
+                multiline
+                textAlignVertical="top"
+                accessibilityLabel="Pole edycji opisu stanowiska"
+              />
+            </View>
+          </View>
+
+          {/* 13. Twoje oczekiwania */}
+          <View style={styles.sectionCard}>
+            <Text style={styles.sectionTitle}>13. Twoje oczekiwania</Text>
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Czego oczekujesz od kandydata?</Text>
               <TextInput
                 style={[styles.input, styles.textArea]}
-                placeholder="Napisz w prostych słowach, czego oczekujesz (np. dyspozycyjność w weekendy, dokładność, punktualność)."
+                placeholder="np. dyspozycyjność w weekendy, dokładność, punktualność."
                 placeholderTextColor="#9CA3AF"
                 value={expectations}
                 onChangeText={setExpectations}
@@ -654,7 +681,7 @@ export default function CreateJobOfferScreen() {
 
           {/* Tagi charakteru pracy */}
           <View style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>13. Tagi – charakter pracy</Text>
+            <Text style={styles.sectionTitle}>14. Tagi – charakter pracy</Text>
             <Text style={styles.sectionSubtitle}>
               Dodaj własne tagi opisujące charakter pracy (np. praca fizyczna, MS Office, obsługa klienta).
             </Text>
@@ -781,7 +808,7 @@ export default function CreateJobOfferScreen() {
 
         </ScrollView>
         <View style={styles.footer}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.saveButton}
             onPress={handleSave}
             activeOpacity={0.8}
@@ -806,7 +833,7 @@ const styles = StyleSheet.create({
   keyboardView: { flex: 1 },
   scrollContent: { padding: 20, paddingBottom: 60 },
   pageTitle: { fontSize: 26, fontWeight: '800', color: MO_TEXT_PRIMARY, marginBottom: 24 },
-  
+
   inputGroup: { marginBottom: 20 },
   label: { fontSize: 14, fontWeight: '600', color: MO_TEXT_PRIMARY, marginBottom: 8 },
   labelRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
@@ -908,11 +935,11 @@ const styles = StyleSheet.create({
     color: MO_TEXT_PRIMARY,
     marginBottom: 2,
   },
-  
+
   prioritiesSection: { marginTop: 16, borderTopWidth: 1, borderTopColor: '#F3F4F6', paddingTop: 24 },
   sectionTitle: { fontSize: 18, fontWeight: '700', color: MO_TEXT_PRIMARY, marginBottom: 4 },
   sectionSubtitle: { fontSize: 13, color: MO_TEXT_SECONDARY, lineHeight: 18, marginBottom: 20 },
-  
+
   priorityRow: { marginBottom: 24 },
   priorityLabel: { fontSize: 15, fontWeight: '600', color: MO_TEXT_PRIMARY, marginBottom: 12 },
   requirementItem: {
@@ -931,7 +958,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: MO_TEXT_SECONDARY,
   },
-  
+
   segmentedControl: {
     flexDirection: 'row',
     backgroundColor: '#F3F4F6',
@@ -1022,7 +1049,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   saveButtonText: { color: MO_WHITE, fontSize: 16, fontWeight: '700' },
-  
+
   successOverlay: {
     flex: 1,
     backgroundColor: MO_BG,

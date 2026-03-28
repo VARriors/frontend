@@ -1,11 +1,22 @@
-import { JobOffer } from '@/src/services/mPraca/candidate/data/MockData';
-import { fetchJobs } from '@/src/services/api';
-import { Briefcase, Search, SlidersHorizontal } from 'lucide-react-native';
-import React, { useEffect, useState, useCallback } from 'react';
-import { FlatList, LayoutAnimation, Platform, StyleSheet, Text, TextInput, TouchableOpacity, UIManager, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import {JobOffer} from '@/src/services/mPraca/candidate/data/MockData';
+import {fetchJobs} from '@/src/services/api';
+import {Briefcase, Search, SlidersHorizontal, ChevronRight} from 'lucide-react-native';
+import React, {useEffect, useState, useCallback} from 'react';
+import {
+  FlatList,
+  LayoutAnimation,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  UIManager,
+  View,
+  Alert,
+} from 'react-native';
+import {useRouter} from 'expo-router';
 import CVRequirementModal from '@/src/services/mPraca/candidate/components/CVRequirementModal';
-
+import {validateJobCVRequirement} from '@/src/services/mPraca/candidate/api/jobRequirementsApi';
 
 // Enable LayoutAnimation for Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -63,7 +74,7 @@ export default function JobSearchScreen() {
   };
 
   const toggleTag = (tag: string) => {
-    setSelectedTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
+    setSelectedTags(prev => (prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]));
   };
 
   const handleApplyPress = useCallback(
@@ -84,12 +95,13 @@ export default function JobSearchScreen() {
             jobId: job.id,
             jobTitle: job.title,
             requiresCV: validation.requires_cv,
-            reason: validation.reason,
+            reason: validation.reason || undefined,
           });
           setCvModalVisible(true);
         } else {
-          const employerId = (job as JobOffer & { employerId?: string; employer_id?: string }).employerId
-            || (job as JobOffer & { employerId?: string; employer_id?: string }).employer_id;
+          const employerId =
+            (job as JobOffer & {employerId?: string; employer_id?: string}).employerId ||
+            (job as JobOffer & {employerId?: string; employer_id?: string}).employer_id;
           router.push({
             pathname: '/(tabs)/mPraca/candidate/questionnaire',
             params: {
@@ -100,7 +112,9 @@ export default function JobSearchScreen() {
         }
       } catch (error) {
         console.error('Error checking CV requirement:', error);
-        Alert.alert('Błąd', 'Nie udało się zweryfikować wymagań CV. Spróbuj ponownie.', [{ text: 'OK' }]);
+        Alert.alert('Błąd', 'Nie udało się zweryfikować wymagań CV. Spróbuj ponownie.', [
+          {text: 'OK'},
+        ]);
       } finally {
         setCheckingCvRequirement(false);
       }
@@ -120,34 +134,39 @@ export default function JobSearchScreen() {
       params: {
         jobId: selectedJobForApplication.id,
         employerId:
-          (selectedJobForApplication as JobOffer & { employerId?: string; employer_id?: string }).employerId ||
-          (selectedJobForApplication as JobOffer & { employerId?: string; employer_id?: string }).employer_id,
+          (selectedJobForApplication as JobOffer & {employerId?: string; employer_id?: string})
+            .employerId ||
+          (selectedJobForApplication as JobOffer & {employerId?: string; employer_id?: string})
+            .employer_id,
       },
     });
   }, [router, selectedJobForApplication]);
 
-  const renderOfferCard = ({ item }: { item: JobOffer }) => (
+  const renderOfferCard = ({item}: {item: JobOffer}) => (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => router.push({
-        pathname: '/mPraca/candidate/job-details/[id]',
-        params: { id: item.id }
-      })}
-      activeOpacity={0.7}
-    >
-      <View style={styles.cardHeader}>
-        <Text style={styles.categoryBadge}>{item.category.toUpperCase()}</Text>
-        <Text style={styles.salary}>{item.salaryRange}</Text>
-      </View>
-      <Text style={styles.jobTitle}>{item.title}</Text>
-      <View style={styles.companyNameRow}>
-        <Briefcase size={14} color={MO_TEXT_SECONDARY} style={{ marginRight: 4 }} />
-        <Text style={styles.companyNameText}>{item.company}</Text>
-      </View>
-      <Text style={styles.description} numberOfLines={2}>{item.description}</Text>
-
-      <View style={styles.detailsButton}>
-        <Text style={styles.detailsButtonText}>Pokaż szczegóły</Text>
+      onPress={() =>
+        router.push({
+          pathname: '/mPraca/candidate/job-details/[id]',
+          params: {id: item.id},
+        })
+      }
+      activeOpacity={0.7}>
+      <View style={styles.cardContent}>
+        <View style={styles.cardMain}>
+          <Text style={styles.jobTitle}>{item.title}</Text>
+          <View style={styles.companyNameRow}>
+            <Briefcase size={14} color={MO_TEXT_SECONDARY} style={{marginRight: 4}} />
+            <Text style={styles.companyNameText}>{item.company}</Text>
+          </View>
+          <View style={styles.cardFooter}>
+            <Text style={styles.salary}>{item.salaryRange} PLN</Text>
+            <View style={styles.detailsLink}>
+              <Text style={styles.detailsText}>Zobacz szczegóły</Text>
+              <ChevronRight size={18} color={MO_BLUE} />
+            </View>
+          </View>
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -169,8 +188,7 @@ export default function JobSearchScreen() {
           style={[styles.filterButton, filtersExpanded && styles.filterButtonActive]}
           onPress={toggleFilters}
           accessibilityRole="button"
-          accessibilityLabel="Filtruj wyniki"
-        >
+          accessibilityLabel="Filtruj wyniki">
           <SlidersHorizontal size={22} color={filtersExpanded ? MO_WHITE : MO_BLUE} />
         </TouchableOpacity>
       </View>
@@ -183,9 +201,10 @@ export default function JobSearchScreen() {
               <TouchableOpacity
                 key={term}
                 style={[styles.chip, selectedTerm === term && styles.chipActive]}
-                onPress={() => setSelectedTerm(term)}
-              >
-                <Text style={[styles.chipText, selectedTerm === term && styles.chipTextActive]}>{term}</Text>
+                onPress={() => setSelectedTerm(term)}>
+                <Text style={[styles.chipText, selectedTerm === term && styles.chipTextActive]}>
+                  {term}
+                </Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -198,11 +217,10 @@ export default function JobSearchScreen() {
                 <TouchableOpacity
                   key={tag}
                   style={[styles.chip, isActive && styles.chipActive]}
-                  onPress={() => toggleTag(tag)}
-                >
+                  onPress={() => toggleTag(tag)}>
                   <Text style={[styles.chipText, isActive && styles.chipTextActive]}>{tag}</Text>
                 </TouchableOpacity>
-              )
+              );
             })}
           </View>
         </View>
@@ -234,43 +252,102 @@ export default function JobSearchScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: MO_BG },
+  container: {flex: 1, backgroundColor: MO_BG},
 
-  searchContainer: { flexDirection: 'row', padding: 16, backgroundColor: MO_WHITE, borderBottomWidth: 1, borderBottomColor: MO_BORDER, gap: 12 },
-  searchInputWrapper: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#F3F4F6', borderRadius: 12, paddingHorizontal: 12 },
-  searchIcon: { marginRight: 8 },
-  searchInput: { flex: 1, height: 48, fontSize: 16, color: MO_TEXT_PRIMARY },
-  filterButton: { width: 48, height: 48, borderRadius: 12, borderWidth: 1, borderColor: MO_BLUE, alignItems: 'center', justifyContent: 'center', backgroundColor: MO_WHITE },
-  filterButtonActive: { backgroundColor: MO_BLUE },
-
-  filtersPanel: { padding: 16, backgroundColor: MO_WHITE, borderBottomWidth: 1, borderBottomColor: MO_BORDER },
-  filterSectionTitle: { fontSize: 14, fontWeight: '700', color: MO_TEXT_PRIMARY, marginBottom: 12, marginTop: 4 },
-  chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
-  chip: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 20, borderWidth: 1, borderColor: MO_BORDER, backgroundColor: MO_WHITE },
-  chipActive: { borderColor: MO_BLUE, backgroundColor: '#EFF6FF' },
-  chipText: { fontSize: 14, color: MO_TEXT_SECONDARY, fontWeight: '500' },
-  chipTextActive: { color: MO_BLUE, fontWeight: '600' },
-
-  listContent: { padding: 16, paddingBottom: 40 },
-  card: { backgroundColor: MO_WHITE, borderRadius: 16, padding: 20, marginBottom: 16, borderWidth: 1, borderColor: MO_BORDER, ...Platform.select({ ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 6 }, android: { elevation: 2 } }) },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
-  categoryBadge: { fontSize: 12, fontWeight: '700', color: MO_BLUE, letterSpacing: 0.5 },
-  salary: { fontSize: 14, fontWeight: '700', color: '#047857' },
-  jobTitle: { fontSize: 20, fontWeight: '800', color: MO_TEXT_PRIMARY, marginBottom: 6 },
-  companyNameRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  companyNameText: { fontSize: 14, fontWeight: '500', color: MO_TEXT_SECONDARY },
-  description: { fontSize: 15, color: '#4B5563', lineHeight: 22, marginBottom: 16 },
-  detailsButton: {
+  searchContainer: {
+    flexDirection: 'row',
+    padding: 16,
+    backgroundColor: MO_WHITE,
+    borderBottomWidth: 1,
+    borderBottomColor: MO_BORDER,
+    gap: 12,
+  },
+  searchInputWrapper: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F3F4F6',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+  },
+  searchIcon: {marginRight: 8},
+  searchInput: {flex: 1, height: 48, fontSize: 16, color: MO_TEXT_PRIMARY},
+  filterButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: MO_BLUE,
-    paddingVertical: 10,
-    borderRadius: 8,
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: MO_WHITE,
   },
-  detailsButtonText: {
-    color: MO_BLUE,
+  filterButtonActive: {backgroundColor: MO_BLUE},
+
+  filtersPanel: {
+    padding: 16,
+    backgroundColor: MO_WHITE,
+    borderBottomWidth: 1,
+    borderBottomColor: MO_BORDER,
+  },
+  filterSectionTitle: {
     fontSize: 14,
     fontWeight: '700',
+    color: MO_TEXT_PRIMARY,
+    marginBottom: 12,
+    marginTop: 4,
+  },
+  chipsRow: {flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16},
+  chip: {
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: MO_BORDER,
+    backgroundColor: MO_WHITE,
+  },
+  chipActive: {borderColor: MO_BLUE, backgroundColor: '#EFF6FF'},
+  chipText: {fontSize: 14, color: MO_TEXT_SECONDARY, fontWeight: '500'},
+  chipTextActive: {color: MO_BLUE, fontWeight: '600'},
+
+  listContent: {padding: 16, paddingBottom: 40},
+  card: {
+    backgroundColor: MO_WHITE,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: MO_BORDER,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: {width: 0, height: 2},
+        shadowOpacity: 0.04,
+        shadowRadius: 6,
+      },
+      android: {elevation: 2},
+    }),
+  },
+  cardContent: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'},
+  cardMain: {flex: 1, paddingRight: 12},
+  jobTitle: {fontSize: 18, fontWeight: '700', color: MO_TEXT_PRIMARY, marginBottom: 4},
+  companyNameRow: {flexDirection: 'row', alignItems: 'center', marginBottom: 8},
+  companyNameText: {fontSize: 14, fontWeight: '500', color: MO_TEXT_SECONDARY},
+  salary: {fontSize: 14, fontWeight: '700', color: '#047857'},
+  cardFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 8,
+  },
+  detailsLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  detailsText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: MO_BLUE,
   },
 });

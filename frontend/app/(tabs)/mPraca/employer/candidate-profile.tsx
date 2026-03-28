@@ -1,6 +1,8 @@
-import { CandidateApplication, mockCandidates } from '@/src/services/mPraca/employer/data/EmployerMockData';
-import React, { useState } from 'react';
-import { Modal, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { CandidateApplication } from '@/src/services/mPraca/employer/data/EmployerMockData';
+import React, { useState, useEffect } from 'react';
+import { Modal, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
+import { fetchCandidateProfile } from '@/src/services/api';
 
 const MO_GREEN = '#10B981'; // Green for Accept
 const MO_RED = '#EF4444'; // Red for Reject
@@ -12,13 +14,49 @@ const MO_BORDER = '#D1D5DB';
 const MO_BG = '#F9FAFB';
 
 export default function CandidateProfileScreen() {
-  // W prawdziwej aplikacji ID pobieralibyśmy z parametrów nawigacji (route.params.candidateId)
-  const [candidate] = useState<CandidateApplication>(mockCandidates[0]); 
+  const { candidateId } = useLocalSearchParams<{ candidateId?: string }>();
+  const [candidate, setCandidate] = useState<CandidateApplication | null>(null);
+  const [loading, setLoading] = useState(true);
   const [isCvModalVisible, setCvModalVisible] = useState(false);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (!candidateId) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const data = await fetchCandidateProfile(candidateId);
+        if (data) {
+          const questionnaire = data.questionnaire || {};
+          const fields = questionnaire.fields || {};
+
+          setCandidate({
+            id: candidateId,
+            name: `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'Anonimowy Kandydat',
+            title: 'Kandydat',
+            summary: `Email: ${data.email || 'Brak'}`,
+            fullCvText: data.cv_content || 'Brak przesłanego CV.',
+            hasSanepid: fields.sanepid?.value === true || fields.sanepid?.value === 'true',
+            cleanCriminalRecord: fields.niekaralnosc?.value === true || fields.niekaralnosc?.value === 'true',
+            hasDrivingLicense: fields.prawo_jazdy?.value === true || fields.prawo_jazdy?.value === 'true',
+            aiMatchScore: 85,
+            status: 'VIEWED',
+          });
+        }
+      } catch (error) {
+        console.error('Error loading profile:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProfile();
+  }, [candidateId]);
 
   // Funkcje do globalnego zarządzania stanem
   const handleAccept = () => {
-    /* 
+    /*
       TODO: Zaktualizuj globalny stan aplikacyjny, np. Redux / Zustand:
       dispatch(updateApplicationStatus({ id: candidate.id, status: 'ACCEPTED' }));
       AI powiadomi użytkownika: "Firma X rozpatrzyła Twoją aplikację pozytywnie!"
@@ -37,14 +75,30 @@ export default function CandidateProfileScreen() {
     // navigation.goBack();
   };
 
+  if (loading) {
+    return (
+      <SafeAreaView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={MO_BLUE} />
+      </SafeAreaView>
+    );
+  }
+
+  if (!candidate) {
+    return (
+      <SafeAreaView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <Text>Nie znaleziono kandydata.</Text>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        
+
         <View style={styles.header}>
           <Text style={styles.name}>{candidate.name}</Text>
           <Text style={styles.title}>{candidate.title}</Text>
-          
+
           <View style={styles.matchScore}>
             <Text style={styles.matchScoreText}>AI Weryfikacja: {candidate.aiMatchScore}% Zgodności</Text>
           </View>
@@ -79,7 +133,7 @@ export default function CandidateProfileScreen() {
           </View>
         </View>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.fullCvButton}
           onPress={() => setCvModalVisible(true)}
           activeOpacity={0.8}
@@ -91,16 +145,16 @@ export default function CandidateProfileScreen() {
 
       {/* BOTTOM ACTION BAR - PANEL DECYZYJNY */}
       <View style={styles.bottomBar}>
-        <TouchableOpacity 
-          style={[styles.actionButton, styles.rejectButton]} 
+        <TouchableOpacity
+          style={[styles.actionButton, styles.rejectButton]}
           onPress={handleReject}
           activeOpacity={0.8}
         >
           <Text style={styles.rejectButtonText}>Odrzuć</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity 
-          style={[styles.actionButton, styles.acceptButton]} 
+        <TouchableOpacity
+          style={[styles.actionButton, styles.acceptButton]}
           onPress={handleAccept}
           activeOpacity={0.8}
         >
@@ -130,33 +184,33 @@ export default function CandidateProfileScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: MO_BG },
   scrollContent: { padding: 20, paddingBottom: 100 },
-  
+
   header: { marginBottom: 32, alignItems: 'center' },
   name: { fontSize: 28, fontWeight: '800', color: MO_TEXT_PRIMARY, marginBottom: 4 },
   title: { fontSize: 18, color: MO_BLUE, fontWeight: '600', marginBottom: 12 },
   matchScore: { backgroundColor: '#FDF2F8', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: '#FBCFE8' },
   matchScoreText: { color: '#BE185D', fontWeight: '700', fontSize: 13 },
-  
+
   section: { backgroundColor: MO_WHITE, borderRadius: 16, padding: 20, marginBottom: 16, borderWidth: 1, borderColor: MO_BORDER, ...Platform.select({ ios: { shadowColor: '#000', shadowOpacity: 0.03, shadowRadius: 8, shadowOffset: { width: 0, height: 2 } }, android: { elevation: 1 } }) },
   sectionTitle: { fontSize: 16, fontWeight: '700', color: MO_TEXT_PRIMARY, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 },
   summaryText: { fontSize: 15, color: MO_TEXT_SECONDARY, lineHeight: 24 },
-  
+
   badgesWrapper: { flexDirection: 'column', gap: 10 },
   badge: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 14, borderRadius: 8, borderWidth: 1 },
   badgeVerified: { backgroundColor: '#ECFDF5', borderColor: '#A7F3D0' },
   badgeTextVerified: { color: '#047857', fontWeight: '600', fontSize: 15 },
   noBadgesText: { fontSize: 14, color: MO_TEXT_SECONDARY, fontStyle: 'italic' },
-  
+
   fullCvButton: { backgroundColor: MO_WHITE, borderWidth: 1, borderColor: MO_BLUE, borderRadius: 12, paddingVertical: 16, alignItems: 'center', marginTop: 12 },
   fullCvButtonText: { color: MO_BLUE, fontSize: 16, fontWeight: '700' },
-  
+
   bottomBar: { flexDirection: 'row', position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: MO_WHITE, paddingHorizontal: 20, paddingVertical: 16, paddingBottom: Platform.OS === 'ios' ? 32 : 16, borderTopWidth: 1, borderTopColor: '#E5E7EB', gap: 12 },
   actionButton: { flex: 1, paddingVertical: 16, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   rejectButton: { backgroundColor: MO_WHITE, borderWidth: 1, borderColor: MO_RED },
   rejectButtonText: { color: MO_RED, fontSize: 16, fontWeight: '700' },
   acceptButton: { backgroundColor: MO_GREEN, shadowColor: MO_GREEN, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 4 },
   acceptButtonText: { color: MO_WHITE, fontSize: 16, fontWeight: '700' },
-  
+
   modalContainer: { flex: 1, backgroundColor: MO_WHITE },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: MO_BORDER },
   modalTitle: { fontSize: 18, fontWeight: '700', color: MO_TEXT_PRIMARY },
