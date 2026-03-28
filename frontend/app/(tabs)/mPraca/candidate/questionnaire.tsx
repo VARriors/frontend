@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
+  Alert, Platform,
   ScrollView,
   Text,
   TextInput,
@@ -166,7 +166,7 @@ export default function QuestionnaireScreen() {
 
     try {
       await putUrzadPracy(candidateId, buildUrzadPracyPayload(getValues()));
-      await loadQuestionnaire(candidateId);
+      console.log("RELOADING loadQuestionnaire"); console.log("SENDING loadQuestionnaire"); await loadQuestionnaire(candidateId); console.log("OK loadQuestionnaire"); console.log("OK loadQuestionnaire");
       Alert.alert(
         'Sukces',
         'Historia zatrudnienia została zapisana i zweryfikowana przez Urząd Pracy.',
@@ -318,15 +318,15 @@ export default function QuestionnaireScreen() {
       setIsSubmitting(true);
 
       try {
-        await putMobywatel(candidateId, buildMobywatelPayload(data));
-        await putUserInput(candidateId, buildUserInputPayload(data));
-        await putUrzadPracy(candidateId, buildUrzadPracyPayload(data));
+        console.log("SENDING putMobywatel"); await putMobywatel(candidateId, buildMobywatelPayload(data)); console.log("OK putMobywatel");
+        console.log("SENDING putUserInput"); await putUserInput(candidateId, buildUserInputPayload(data)); console.log("OK putUserInput");
+        console.log("SENDING putUrzadPracy"); await putUrzadPracy(candidateId, buildUrzadPracyPayload(data)); console.log("OK putUrzadPracy");
         const jobId = typeof params.jobId === 'string' ? params.jobId.trim() : '';
         const employerId = typeof params.employerId === 'string' ? params.employerId.trim() : '';
 
         let applyMessage = '';
         if (jobId) {
-          const applyResult = await applyToJob({
+          console.log("SENDING applyToJob"); const applyResult = await applyToJob({
             candidateId,
             jobId,
             employerId: employerId || undefined,
@@ -340,20 +340,32 @@ export default function QuestionnaireScreen() {
 
         await loadQuestionnaire(candidateId);
         setIsSubmitting(false);
-        Alert.alert(
-          '✅ Kwestionariusz zapisany',
-          `Twoje dane zostały przesłane. Pola z mObywatela i ZUS są automatycznie zweryfikowane.${applyMessage}`,
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                if (jobId) {
-                  router.push('/(tabs)/mPraca/candidate/my-applications');
-                }
+        console.log('SHOWING ALERT NOW');
+        if (Platform.OS === 'web') {
+          window.alert('✅ Kwestionariusz zapisany! ' + (applyMessage ? applyMessage : 'Zaraz zostaniesz przekierowany do ofert pracy.'));
+          if (jobId) {
+            router.push('/(tabs)/mPraca/candidate/my-applications');
+          } else {
+            router.push('/(tabs)/mPraca/candidate/job-search');
+          }
+        } else {
+          Alert.alert(
+            'Kwestionariusz zapisany',
+            `Twoje dane zostały przesłane. Pola z mObywatela i ZUS są automatycznie zweryfikowane.${applyMessage}`,
+            [
+              {
+                text: 'OK',
+                onPress: () => {
+                  if (jobId) {
+                    router.push('/(tabs)/mPraca/candidate/my-applications');
+                  } else {
+                    router.push('/(tabs)/mPraca/candidate/job-search');
+                  }
+                },
               },
-            },
-          ],
-        );
+            ],
+          );
+        }
       } catch (error) {
         setIsSubmitting(false);
         const message =
@@ -832,7 +844,7 @@ export default function QuestionnaireScreen() {
       <View style={s.footer}>
         <TouchableOpacity
           style={[s.submitButton, (isSubmitting || !candidateId) && s.submitButtonDisabled]}
-          onPress={handleSubmit(onSubmit)}
+          onPress={handleSubmit(onSubmit, (errors) => { Alert.alert("Błędy formularza", "Popraw błędy w polach:\n" + Object.keys(errors).join(", ")); })}
           disabled={isSubmitting || !candidateId}
           activeOpacity={0.8}
           accessibilityRole="button"

@@ -1,9 +1,11 @@
-import { JobOffer, mockJobOffers } from '@/src/services/mPraca/candidate/data/MockData';
-import { fetchJobs, API_BASE_URL } from '@/src/services/api';
+import { JobOffer } from '@/src/services/mPraca/candidate/data/MockData';
+import { fetchJobs } from '@/src/services/api';
 import { Briefcase, Search, SlidersHorizontal } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { FlatList, LayoutAnimation, Platform, StyleSheet, Text, TextInput, TouchableOpacity, UIManager, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import CVRequirementModal from '@/src/services/mPraca/candidate/components/CVRequirementModal';
+
 
 // Enable LayoutAnimation for Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {

@@ -101,10 +101,8 @@ export const questionnaireFormSchema = z.object({
   //    bo dane przychodzą z backendu, ale definiujemy dla kompletności typów)
   imie: z.string().min(1, 'Imię jest wymagane'),
   nazwisko: z.string().min(1, 'Nazwisko jest wymagane'),
-  pesel: z
-    .string()
-    .regex(/^\d{11}$/, 'PESEL musi składać się z 11 cyfr'),
-  dowod: z.string().min(1, 'Numer dowodu jest wymagany'),
+  pesel: z.string().optional().or(z.literal('')), 
+  dowod: z.string().optional().or(z.literal('')),
   niepelnosprawnosc: z.boolean(),
 
   // ── SEKCJA 2: Kwestionariusz (pola edytowalne przez użytkownika)
