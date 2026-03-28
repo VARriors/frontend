@@ -1,4 +1,5 @@
 import { setPreferencesCompleted } from '@/src/services/mPraca/data/OnboardingState';
+import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -82,12 +83,7 @@ export default function PreferencesScreen() {
       setPreferencesCompleted(true);
 
       // Resetujemy historię nawigacji
-      navigation.reset({
-        index: 0,
-        routes: [
-          { name: 'CandidateCenter' }
-        ],
-      });
+      router.replace('/(tabs)/mPraca/candidate');
     } catch (error) {
       console.error(error);
       Alert.alert("Błąd", "Nie udało się zapisać preferencji. Spróbuj ponownie.");
