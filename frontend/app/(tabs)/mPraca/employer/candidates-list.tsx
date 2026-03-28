@@ -59,7 +59,6 @@ export default function CandidatesListScreen() {
               const smartMatch = match.smartMatch;
               const application = match.application;
 
-<<<<<<< HEAD
               return {
                 id: application?.applicationId || candidate.id || Math.random().toString(),
                 candidateId: candidate.id,
@@ -85,27 +84,6 @@ export default function CandidatesListScreen() {
               };
             },
           );
-=======
-            return {
-              id: application?.applicationId || candidate.id || Math.random().toString(),
-              candidateId: candidate.id,
-              name: `${candidate.firstName || ''} ${candidate.lastName || ''}`.trim() || 'Anonimowy Kandydat',
-              title: jobTitle || 'Stanowisko',
-              summary: candidate.email || 'Brak danych kontaktowych',
-              fullCvText: '',
-              hasSanepid: false,
-              cleanCriminalRecord: true,
-              hasDrivingLicense: false,
-              prefTypUmowy: [],
-              prefWymiarEtatu: [],
-              prefBranze: [],
-              aiMatchScore: Math.round(smartMatch.final_match_percentage),
-              aiMatchFeedback: smartMatch.evaluations?.map(e => `• ${e.description}: ${e.justification}`).join('\n') || '',
-              aiMatchSummary: smartMatch.summary || '',
-              status: application?.status || 'UNREAD',
-            };
-          });
->>>>>>> 10e2b57 (fix issue frontend)
 
           setCandidates(mappedCandidates);
         } else {
