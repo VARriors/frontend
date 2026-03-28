@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, SafeAr
 import { API_BASE_URL, fetchEmployerByNip } from '@/src/services/api';
 import { getStoredEmployerCompany, getStoredEmployerNip, resolveEmployerIdForApp, saveEmployerSession } from '@/src/services/mPraca/employer/data/EmployerSession';
 import { router } from 'expo-router';
-import { CheckCircle } from 'lucide-react-native';
+import { CheckCircle, X } from 'lucide-react-native';
 
 const MO_BLUE = '#0052A5';
 const MO_WHITE = '#FFFFFF';
@@ -53,6 +53,14 @@ export default function CreateJobOfferScreen() {
   const [contractType, setContractType] = useState<ContractType | null>(null);
   const [workTime, setWorkTime] = useState<WorkTime | null>(null);
   const [salary, setSalary] = useState('');
+  const [employerNIP, setEmployerNIP] = useState('');
+  const [companyName, setCompanyName] = useState('');
+
+  const [responsibilities, setResponsibilities] = useState<string[]>([]);
+  const [newResponsibility, setNewResponsibility] = useState('');
+  const [benefits, setBenefits] = useState<string[]>([]);
+  const [newBenefit, setNewBenefit] = useState('');
+  const [applicationDeadline, setApplicationDeadline] = useState('');
 
   const [minExperience, setMinExperience] = useState('');
   const [minEducationLevel, setMinEducationLevel] = useState<EducationLevel | null>(null);
@@ -117,6 +125,30 @@ export default function CreateJobOfferScreen() {
     if (customTags.includes(trimmed)) return;
     setCustomTags((prev) => [...prev, trimmed]);
     setNewTagName('');
+  };
+
+  const handleAddResponsibility = () => {
+    const trimmed = newResponsibility.trim();
+    if (!trimmed) return;
+    if (responsibilities.includes(trimmed)) return;
+    setResponsibilities((prev) => [...prev, trimmed]);
+    setNewResponsibility('');
+  };
+
+  const handleAddBenefit = () => {
+    const trimmed = newBenefit.trim();
+    if (!trimmed) return;
+    if (benefits.includes(trimmed)) return;
+    setBenefits((prev) => [...prev, trimmed]);
+    setNewBenefit('');
+  };
+
+  const handleRemoveResponsibility = (item: string) => {
+    setResponsibilities((prev) => prev.filter((i) => i !== item));
+  };
+
+  const handleRemoveBenefit = (item: string) => {
+    setBenefits((prev) => prev.filter((i) => i !== item));
   };
 
   const handleAddRequirement = () => {
@@ -197,14 +229,24 @@ export default function CreateJobOfferScreen() {
         body: JSON.stringify({
           employer_id: employerId,
           title,
-
-          company: 'VARriors',
+          company: companyNameTrimmed || 'VARriors',
           location: useDifferentLocation ? customLocation : companyLocation,
           category: '',
           description: expectations,
-          salaryRange: salary,
-          required_skills: languages,
-          employment_type: contractType
+          salary_range: salary,
+          employment_type: contractType,
+          work_time: workTime,
+          work_mode: workMode,
+          position_level: positionLevel,
+          min_experience: minExperience,
+          min_education: minEducationLevel,
+          min_education_details: minEducationDetails,
+          languages: [...languages, ...extraLanguages],
+          tags: [...selectedTags, ...customTags],
+          expectations: expectations,
+          responsibilities: responsibilities,
+          benefits: benefits,
+          application_deadline: applicationDeadline
         }),
       });
 
@@ -249,6 +291,34 @@ export default function CreateJobOfferScreen() {
         <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
 
           <Text style={styles.pageTitle}>Nowa Oferta mPraca</Text>
+
+          {/* 0. Dane Pracodawcy */}
+          <View style={styles.sectionCard}>
+            <Text style={styles.sectionTitle}>Dane Pracodawcy</Text>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>NIP Firmy</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="np. 1234567890"
+                placeholderTextColor="#9CA3AF"
+                value={employerNIP}
+                onChangeText={setEmployerNIP}
+                keyboardType="numeric"
+                accessibilityLabel="Pole edycji NIP firmy"
+              />
+            </View>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Nazwa Firmy</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="np. Restauracja Smak"
+                placeholderTextColor="#9CA3AF"
+                value={companyName}
+                onChangeText={setCompanyName}
+                accessibilityLabel="Pole edycji nazwy firmy"
+              />
+            </View>
+          </View>
 
           {/* 1. Stanowisko */}
           <View style={styles.sectionCard}>
@@ -738,9 +808,92 @@ export default function CreateJobOfferScreen() {
             </View>
           </View>
 
+          {/* 14. Obowiązki i Benefity */}
+          <View style={styles.sectionCard}>
+            <Text style={styles.sectionTitle}>14. Obowiązki i Benefity</Text>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Główne obowiązki</Text>
+              <View style={styles.chipContainer}>
+                {responsibilities.map((item) => (
+                  <View key={item} style={styles.tagChip}>
+                    <Text style={styles.tagChipText}>{item}</Text>
+                    <TouchableOpacity onPress={() => handleRemoveResponsibility(item)} style={{ marginLeft: 6 }}>
+                      <X size={14} color={MO_BLUE} />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+              <View style={styles.addInputRow}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="np. obsługa klienta, przygotowywanie potraw"
+                  placeholderTextColor="#9CA3AF"
+                  value={newResponsibility}
+                  onChangeText={setNewResponsibility}
+                  accessibilityLabel="Pole edycji nowego obowiązku"
+                />
+                <TouchableOpacity
+                  style={styles.addIconButton}
+                  onPress={handleAddResponsibility}
+                  accessibilityLabel="Przycisk dodaj obowiązek"
+                >
+                  <Text style={styles.addIconText}>+</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Oferowane benefity</Text>
+              <View style={styles.chipContainer}>
+                {benefits.map((item) => (
+                  <View key={item} style={styles.tagChip}>
+                    <Text style={styles.tagChipText}>{item}</Text>
+                    <TouchableOpacity onPress={() => handleRemoveBenefit(item)} style={{ marginLeft: 6 }}>
+                      <X size={14} color={MO_BLUE} />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+              <View style={styles.addInputRow}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="np. karta sportowa, opieka medyczna"
+                  placeholderTextColor="#9CA3AF"
+                  value={newBenefit}
+                  onChangeText={setNewBenefit}
+                  accessibilityLabel="Pole edycji nowego benefitu"
+                />
+                <TouchableOpacity
+                  style={styles.addIconButton}
+                  onPress={handleAddBenefit}
+                  accessibilityLabel="Przycisk dodaj benefit"
+                >
+                  <Text style={styles.addIconText}>+</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+
+          {/* 15. Termin składania aplikacji */}
+          <View style={styles.sectionCard}>
+            <Text style={styles.sectionTitle}>15. Termin składania aplikacji</Text>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Data ważności ogłoszenia</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="RRRR-MM-DD (np. 2024-12-31)"
+                placeholderTextColor="#9CA3AF"
+                value={applicationDeadline}
+                onChangeText={setApplicationDeadline}
+                accessibilityLabel="Pole edycji terminu składania aplikacji"
+              />
+            </View>
+          </View>
+
           {/* Programy wsparcia Urzędu Pracy */}
           <View style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>14. Programy wsparcia Urzędu Pracy</Text>
+            <Text style={styles.sectionTitle}>16. Programy wsparcia Urzędu Pracy</Text>
             <Text style={styles.sectionSubtitle}>
               Jeśli chcesz, możemy pomóc przygotować ofertę pod programy dofinansowania z Urzędu Pracy.
             </Text>
@@ -1017,6 +1170,32 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 8,
+  },
+  chipContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 8,
+  },
+  tagChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#DBEAFE',
+  },
+  tagChipText: {
+    fontSize: 14,
+    color: MO_BLUE,
+    fontWeight: '500',
+  },
+  addInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
   },
   addIconButton: {
     marginLeft: 8,
