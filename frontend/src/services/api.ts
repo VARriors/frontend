@@ -1,4 +1,4 @@
-export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:5000/api';
+export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || (__DEV__ ? 'http://172.31.208.148:5000/api' : 'http://10.0.2.2:5000/api');
 const CANDIDATE_ID_STORAGE_KEY = 'mpraca_candidate_id';
 
 const persistCandidateId = (candidateId: string) => {
@@ -263,5 +263,73 @@ export const checkHasApplied = async (jobId: string, candidateId: string) => {
   } catch (error) {
     console.error('checkHasApplied Error:', error);
     return false;
+  }
+};
+
+export type SmartMatchEvaluation = {
+  description: string;
+  score: number;
+  earned_points: number;
+  max_points: number;
+  justification: string;
+};
+
+export type SmartMatch = {
+  final_match_percentage: number;
+  evaluations: SmartMatchEvaluation[];
+  summary?: string;
+  source: string;
+  message?: string;
+};
+
+export type JobMatchCandidate = {
+  candidate: {
+    id: string;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    skills?: string[];
+  };
+  smartMatch: SmartMatch;
+  application?: {
+    applicationId?: string;
+    status?: string;
+    createdAt?: string;
+  };
+};
+
+export type JobMatchesResponse = {
+  job: {
+    id: string;
+    title?: string;
+    company?: string;
+    location?: string;
+    category?: string;
+    requiredSkills?: string[];
+  };
+  total: number;
+  applicantsCount: number;
+  matches: JobMatchCandidate[];
+};
+
+export const fetchJobMatches = async (jobId: string, limit = 50) => {
+  try {
+    const url = `${API_BASE_URL}/matching/employer/${jobId}?limit=${limit}`;
+    console.log('Fetching job matches from:', url);
+    const response = await fetch(url);
+    console.log('Response status:', response.status);
+    console.log('Response ok:', response.ok);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Response error text:', errorText);
+      throw new Error(`Error fetching job matches: ${response.statusText}`);
+    }
+    const data = await response.json();
+    console.log('Job matches data received, total:', data.total);
+    console.log('First match summary:', data.matches?.[0]?.smartMatch?.summary);
+    return data as JobMatchesResponse;
+  } catch (error) {
+    console.error('fetchJobMatches Error:', error);
+    return null;
   }
 };

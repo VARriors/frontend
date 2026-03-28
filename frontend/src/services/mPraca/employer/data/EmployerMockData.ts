@@ -20,6 +20,8 @@ export interface CandidateApplication {
   prefWymiarEtatu: string[];
   prefBranze: string[];
   aiMatchScore: number; // 0 - 100
+  aiMatchFeedback?: string;
+  aiMatchSummary?: string;
   status: AppStatus;
 }
 
