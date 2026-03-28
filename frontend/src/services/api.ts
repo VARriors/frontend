@@ -91,7 +91,13 @@ export type EmployerOffersWithApplicationsResponse = {
   items: EmployerOfferWithApplications[];
 };
 
-export const fetchJobs = async (query = '', category = '', employmentType = '', workTime = '') => {
+export const fetchJobs = async (
+  query = '',
+  category = '',
+  employmentType = '',
+  workTime = '',
+  workMode = '',
+) => {
   try {
     const url = new URL(`${API_BASE_URL}/jobs`);
     if (query) {
@@ -105,6 +111,9 @@ export const fetchJobs = async (query = '', category = '', employmentType = '', 
     }
     if (workTime && workTime !== 'Dowolny') {
       url.searchParams.append('work_time', workTime);
+    }
+    if (workMode && workMode !== 'Dowolny') {
+      url.searchParams.append('work_mode', workMode);
     }
     const response = await fetch(url.toString());
     if (!response.ok) {
