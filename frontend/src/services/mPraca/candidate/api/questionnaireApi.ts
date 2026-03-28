@@ -277,3 +277,89 @@ export const putUrzadPracy = (candidateId: string, payload: UrzadPracyPayload) =
   apiRequest(`/api/candidates/questionnaire/${candidateId}/urzad-pracy`, 'PUT', payload);
 
 export const getConfiguredCandidateId = getRequiredCandidateId;
+
+/**
+ * Upload a CV file (PDF) to the server.
+ * The server will extract text and parse fields (email, phone, languages, skills).
+ *
+ * Returns extracted data preview for the user to review.
+ */
+export const uploadCV = async (candidateId: string, fileData: {
+  uri: string;
+  name: string;
+  type: string;
+  file?: File;
+}) => {
+  const candidateIdVal = getRequiredCandidateId();
+  const formData = new FormData();
+
+  // On web, DocumentPicker provides a File object directly.
+  // On native, fall back to fetching from URI and appending as Blob.
+  if (fileData.file) {
+    formData.append('file', fileData.file, fileData.name);
+  } else {
+    const response = await fetch(fileData.uri);
+    const blob = await response.blob();
+    formData.append('file', blob, fileData.name);
+  }
+
+  try {
+    const apiResponse = await fetch(
+      `${API_BASE_URL}/api/candidates/questionnaire/${candidateId}/cv-upload`,
+      {
+        method: 'POST',
+        headers: {
+          'X-Candidate-Id': candidateIdVal,
+        },
+        body: formData,
+      },
+    );
+
+    if (!apiResponse.ok) {
+      const error = await parseApiError(apiResponse);
+      throw new Error(error);
+    }
+
+    const result = (await apiResponse.json()) as {
+      file_id: string;
+      extraction_status: 'success' | 'failed';
+      extracted_data: {
+        email?: string | null;
+        phone?: string | null;
+        languages?: { jezyk: string; poziom: string }[];
+        skills?: string[];
+      } | null;
+      error?: string | null;
+    };
+
+    return result;
+  } catch (error) {
+    throw new Error(error instanceof Error ? error.message : 'CV upload failed');
+  }
+};
+
+/**
+ * Get CV metadata and extracted data for a candidate.
+ * Does not return the PDF file itself.
+ */
+export const getCV = (candidateId: string) =>
+  apiRequest<{
+    cv: {
+      file_id: string;
+      filename?: string;
+      uploaded_at?: string;
+      extraction_status?: 'success' | 'failed' | 'pending';
+      extracted_data?: {
+        email?: string | null;
+        phone?: string | null;
+        languages?: { jezyk: string; poziom: string }[];
+        skills?: string[];
+      };
+    } | null;
+  }>(`/api/candidates/questionnaire/${candidateId}/cv`, 'GET');
+
+/**
+ * Delete a CV file from the server and clear it from the questionnaire.
+ */
+export const deleteCV = (candidateId: string) =>
+  apiRequest(`/api/candidates/questionnaire/${candidateId}/cv`, 'DELETE');

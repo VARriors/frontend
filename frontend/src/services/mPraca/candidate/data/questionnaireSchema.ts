@@ -74,6 +74,26 @@ export const aktywnoscSchema = z.object({
   okres: z.string().optional(),
 });
 
+/** Ekstrahowane dane z CV */
+export const cvExtractedDataSchema = z.object({
+  email: z.string().optional(),
+  phone: z.string().optional(),
+  languages: z.array(z.object({
+    jezyk: z.string(),
+    poziom: z.string(),
+  })).optional(),
+  skills: z.array(z.string()).optional(),
+});
+
+/** CV - dokument PDF z wyekstrahowanymi danymi */
+export const cvSchema = z.object({
+  file_id: z.string(),
+  filename: z.string().optional(),
+  uploaded_at: z.string().optional(),
+  extraction_status: z.enum(['success', 'failed', 'pending']).optional(),
+  extracted_data: cvExtractedDataSchema.optional(),
+}).optional();
+
 // ─── Główny schemat ───────────────────────────────────────────────
 
 export const questionnaireFormSchema = z.object({
@@ -113,6 +133,9 @@ export const questionnaireFormSchema = z.object({
   szkolenia: z.array(szkolenieSchema).optional(),
   certyfikaty: z.array(certyfikatSchema).optional(),
   aktywnosc_dodatkowa: z.array(aktywnoscSchema).optional(),
+
+  // ── SEKCJA 4: Dokument CV (PDF z wyekstrahowanymi danymi)
+  cv: cvSchema,
 });
 
 export type QuestionnaireFormValues = z.infer<typeof questionnaireFormSchema>;
@@ -121,3 +144,5 @@ export type Jezyk = z.infer<typeof jezykSchema>;
 export type Szkolenie = z.infer<typeof szkolenieSchema>;
 export type Certyfikat = z.infer<typeof certyfikatSchema>;
 export type Aktywnosc = z.infer<typeof aktywnoscSchema>;
+export type CVExtractedData = z.infer<typeof cvExtractedDataSchema>;
+export type CV = z.infer<typeof cvSchema>;
