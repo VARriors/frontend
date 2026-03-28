@@ -12,6 +12,7 @@ const NORMALIZED_API_BASE_URL = RAW_API_BASE_URL.replace(/\/$/, '');
 export const API_BASE_URL = NORMALIZED_API_BASE_URL.endsWith('/api')
   ? NORMALIZED_API_BASE_URL
   : `${NORMALIZED_API_BASE_URL}/api`;
+
 const CANDIDATE_ID_STORAGE_KEY = 'mpraca_candidate_id';
 
 const persistCandidateId = (candidateId: string) => {
