@@ -45,6 +45,7 @@ export default function CandidateLayout() {
       <Stack.Screen name="preferences" options={{ title: 'Twoje Preferencje' }} />
       <Stack.Screen name="my-applications" options={{ title: 'Moje Aplikacje' }} />
       <Stack.Screen name="application-details" options={{ title: 'Szczegóły Aplikacji' }} />
+      <Stack.Screen name="questionnaire" options={{ title: 'Profil Kandydata' }} />
     </Stack>
   );
 }
