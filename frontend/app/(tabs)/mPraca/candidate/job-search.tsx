@@ -1,6 +1,6 @@
 import {JobOffer} from '@/src/services/mPraca/candidate/data/MockData';
 import {fetchJobs} from '@/src/services/api';
-import {Briefcase, Search, SlidersHorizontal, ChevronRight} from 'lucide-react-native';
+import {Briefcase, Search, SlidersHorizontal, ChevronRight, Filter} from 'lucide-react-native';
 import React, {useEffect, useState, useCallback} from 'react';
 import {
   FlatList,
@@ -13,10 +13,12 @@ import {
   UIManager,
   View,
   Alert,
+  ScrollView,
 } from 'react-native';
 import {useRouter} from 'expo-router';
 import CVRequirementModal from '@/src/services/mPraca/candidate/components/CVRequirementModal';
 import {validateJobCVRequirement} from '@/src/services/mPraca/candidate/api/jobRequirementsApi';
+import {BRANZE, TYPY_UMOWY, WYMIAR_ETATU} from '@/src/services/mPraca/candidate/data/questionnaireSchema';
 
 // Enable LayoutAnimation for Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -37,14 +39,26 @@ export default function JobSearchScreen() {
   const [jobs, setJobs] = useState<JobOffer[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Filtry
+  const [selectedCategory, setSelectedCategory] = useState('Wszystkie');
+  const [selectedEmploymentType, setSelectedEmploymentType] = useState('Dowolna');
+  const [selectedWorkTime, setSelectedWorkTime] = useState('Dowolny');
+  const [selectedTerm, setSelectedTerm] = useState('Dowolny');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+
   useEffect(() => {
     loadJobs();
-  }, [searchQuery]);
+  }, [searchQuery, selectedCategory, selectedEmploymentType, selectedWorkTime]);
 
   const loadJobs = async () => {
     setLoading(true);
     try {
-      const results = await fetchJobs(searchQuery);
+      const results = await fetchJobs(
+        searchQuery,
+        selectedCategory,
+        selectedEmploymentType,
+        selectedWorkTime
+      );
       setJobs(results);
     } catch (e) {
       console.error(e);
@@ -52,10 +66,6 @@ export default function JobSearchScreen() {
       setLoading(false);
     }
   };
-
-  // Przykładowe filtry
-  const [selectedTerm, setSelectedTerm] = useState('Dowolny');
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   // CV Requirement Modal state
   const [cvModalVisible, setCvModalVisible] = useState(false);
@@ -195,34 +205,103 @@ export default function JobSearchScreen() {
 
       {filtersExpanded && (
         <View style={styles.filtersPanel}>
-          <Text style={styles.filterSectionTitle}>Termin aplikowania</Text>
-          <View style={styles.chipsRow}>
-            {['Dowolny', 'Do 3 dni', 'Do tygodnia'].map(term => (
-              <TouchableOpacity
-                key={term}
-                style={[styles.chip, selectedTerm === term && styles.chipActive]}
-                onPress={() => setSelectedTerm(term)}>
-                <Text style={[styles.chipText, selectedTerm === term && styles.chipTextActive]}>
-                  {term}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterGroupsScroll}>
+            <View style={styles.filterGroup}>
+              <View style={styles.filterGroupHeader}>
+                <Filter size={14} color={MO_BLUE} style={{marginRight: 6}} />
+                <Text style={styles.filterSectionTitle}>Branża</Text>
+              </View>
+              <View style={styles.chipsRow}>
+                {['Wszystkie', ...BRANZE].map(cat => (
+                  <TouchableOpacity
+                    key={cat}
+                    style={[styles.chip, selectedCategory === cat && styles.chipActive]}
+                    onPress={() => setSelectedCategory(cat)}>
+                    <Text style={[styles.chipText, selectedCategory === cat && styles.chipTextActive]}>
+                      {cat}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
 
-          <Text style={styles.filterSectionTitle}>Wymagania Państwowe (Inne kategorie)</Text>
-          <View style={styles.chipsRow}>
-            {['Tylko bez KRK', 'Wymaga Sanepidu', 'Prawo Jazdy'].map(tag => {
-              const isActive = selectedTags.includes(tag);
-              return (
-                <TouchableOpacity
-                  key={tag}
-                  style={[styles.chip, isActive && styles.chipActive]}
-                  onPress={() => toggleTag(tag)}>
-                  <Text style={[styles.chipText, isActive && styles.chipTextActive]}>{tag}</Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
+            <View style={styles.filterGroup}>
+              <View style={styles.filterGroupHeader}>
+                <Filter size={14} color={MO_BLUE} style={{marginRight: 6}} />
+                <Text style={styles.filterSectionTitle}>Rodzaj umowy</Text>
+              </View>
+              <View style={styles.chipsRow}>
+                {['Dowolna', ...TYPY_UMOWY].map(type => (
+                  <TouchableOpacity
+                    key={type}
+                    style={[styles.chip, selectedEmploymentType === type && styles.chipActive]}
+                    onPress={() => setSelectedEmploymentType(type)}>
+                    <Text style={[styles.chipText, selectedEmploymentType === type && styles.chipTextActive]}>
+                      {type}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            <View style={styles.filterGroup}>
+              <View style={styles.filterGroupHeader}>
+                <Filter size={14} color={MO_BLUE} style={{marginRight: 6}} />
+                <Text style={styles.filterSectionTitle}>Wymiar etatu</Text>
+              </View>
+              <View style={styles.chipsRow}>
+                {['Dowolny', ...WYMIAR_ETATU].map(time => (
+                  <TouchableOpacity
+                    key={time}
+                    style={[styles.chip, selectedWorkTime === time && styles.chipActive]}
+                    onPress={() => setSelectedWorkTime(time)}>
+                    <Text style={[styles.chipText, selectedWorkTime === time && styles.chipTextActive]}>
+                      {time}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            <View style={styles.filterGroup}>
+              <View style={styles.filterGroupHeader}>
+                <Filter size={14} color={MO_BLUE} style={{marginRight: 6}} />
+                <Text style={styles.filterSectionTitle}>Termin aplikowania</Text>
+              </View>
+              <View style={styles.chipsRow}>
+                {['Dowolny', 'Do 3 dni', 'Do tygodnia'].map(term => (
+                  <TouchableOpacity
+                    key={term}
+                    style={[styles.chip, selectedTerm === term && styles.chipActive]}
+                    onPress={() => setSelectedTerm(term)}>
+                    <Text style={[styles.chipText, selectedTerm === term && styles.chipTextActive]}>
+                      {term}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            <View style={styles.filterGroup}>
+              <View style={styles.filterGroupHeader}>
+                <Filter size={14} color={MO_BLUE} style={{marginRight: 6}} />
+                <Text style={styles.filterSectionTitle}>Dodatkowe</Text>
+              </View>
+              <View style={styles.chipsRow}>
+                {['Tylko bez KRK', 'Wymaga Sanepidu', 'Prawo Jazdy'].map(tag => {
+                  const isActive = selectedTags.includes(tag);
+                  return (
+                    <TouchableOpacity
+                      key={tag}
+                      style={[styles.chip, isActive && styles.chipActive]}
+                      onPress={() => toggleTag(tag)}>
+                      <Text style={[styles.chipText, isActive && styles.chipTextActive]}>{tag}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          </ScrollView>
         </View>
       )}
 
@@ -285,17 +364,26 @@ const styles = StyleSheet.create({
   filterButtonActive: {backgroundColor: MO_BLUE},
 
   filtersPanel: {
-    padding: 16,
     backgroundColor: MO_WHITE,
     borderBottomWidth: 1,
     borderBottomColor: MO_BORDER,
+  },
+  filterGroupsScroll: {
+    padding: 16,
+  },
+  filterGroup: {
+    marginRight: 24,
+    minWidth: 150,
+  },
+  filterGroupHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
   },
   filterSectionTitle: {
     fontSize: 14,
     fontWeight: '700',
     color: MO_TEXT_PRIMARY,
-    marginBottom: 12,
-    marginTop: 4,
   },
   chipsRow: {flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16},
   chip: {
