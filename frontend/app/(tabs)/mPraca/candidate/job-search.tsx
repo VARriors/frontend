@@ -55,9 +55,7 @@ const getDaysLeftLabel = (deadline?: string | null) => {
     const diffDays = Math.round((d.getTime() - today.getTime()) / msPerDay);
 
     if (diffDays < 0) return 'Nabór zakończony';
-    if (diffDays === 0) return 'Ostatni dzień na aplikację';
-    if (diffDays === 1) return 'Został 1 dzień na aplikację';
-    return `Zostało ${diffDays} dni na aplikację`;
+    return `Zostało ${diffDays} dni`;
   } catch {
     return null;
   }
@@ -211,23 +209,31 @@ export default function JobSearchScreen() {
         activeOpacity={0.7}>
         <View style={styles.cardContent}>
           <View style={styles.cardMain}>
-            <Text style={styles.jobTitle}>{item.title}</Text>
+            <View style={styles.cardTopRow}>
+              <Text style={styles.jobTitle} numberOfLines={1}>
+                {item.title}
+              </Text>
+              {daysLeftLabel && (
+                <View style={styles.deadlinePillTopRight}>
+                  <Calendar size={14} color="#C2410C" style={{marginRight: 4}} />
+                  <Text style={styles.deadlinePillText} numberOfLines={1}>
+                    {daysLeftLabel}
+                  </Text>
+                </View>
+              )}
+            </View>
             <View style={styles.companyNameRow}>
               <Briefcase size={14} color={MO_TEXT_SECONDARY} style={{marginRight: 4}} />
               <Text style={styles.companyNameText}>{item.company}</Text>
             </View>
             <View style={styles.cardFooter}>
-              <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
-                <Text style={styles.salary}>{item.salaryRange} PLN</Text>
-                {daysLeftLabel && (
-                  <View style={styles.deadlinePill}>
-                    <Calendar size={14} color="#C2410C" style={{marginRight: 4}} />
-                    <Text style={styles.deadlinePillText}>{daysLeftLabel}</Text>
-                  </View>
-                )}
-              </View>
+              <Text style={styles.salary} numberOfLines={1}>
+                {item.salaryRange} PLN
+              </Text>
               <View style={styles.detailsLink}>
-                <Text style={styles.detailsText}>Zobacz szczegóły</Text>
+                <Text style={styles.detailsText} numberOfLines={1}>
+                  Zobacz szczegóły
+                </Text>
                 <ChevronRight size={18} color={MO_BLUE} />
               </View>
             </View>
@@ -705,7 +711,14 @@ const styles = StyleSheet.create({
   },
   cardContent: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'},
   cardMain: {flex: 1, paddingRight: 12},
-  jobTitle: {fontSize: 18, fontWeight: '700', color: MO_TEXT_PRIMARY, marginBottom: 4},
+  cardTopRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 8,
+    marginBottom: 4,
+  },
+  jobTitle: {flex: 1, minWidth: 0, fontSize: 18, fontWeight: '700', color: MO_TEXT_PRIMARY},
   companyNameRow: {flexDirection: 'row', alignItems: 'center', marginBottom: 8},
   companyNameText: {fontSize: 14, fontWeight: '500', color: MO_TEXT_SECONDARY},
   salary: {fontSize: 14, fontWeight: '700', color: '#047857'},
@@ -713,9 +726,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: 8,
     marginTop: 8,
   },
   detailsLink: {
+    flexShrink: 0,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
@@ -725,7 +740,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: MO_BLUE,
   },
-  deadlinePill: {
+  deadlinePillTopRight: {
+    flexShrink: 1,
+    minWidth: 0,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 10,
