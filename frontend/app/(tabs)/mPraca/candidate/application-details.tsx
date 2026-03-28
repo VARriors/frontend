@@ -1,6 +1,5 @@
 import {
   Building2,
-  CheckCircle2,
   Clock,
   Eye,
   MailOpen,
@@ -27,15 +26,14 @@ interface TimelineEvent {
   date: string;
   time: string;
   title: string;
-  type: 'SENT' | 'DOWNLOADED' | 'VIEWED' | 'INVITED' | 'REJECTED';
+  type: 'SENT' | 'VIEWED' | 'ACCEPTED' | 'REJECTED';
 }
 
 const getEventIcon = (type: string) => {
   switch (type) {
     case 'SENT': return <Send size={16} color="#6B7280" />;
-    case 'DOWNLOADED': return <CheckCircle2 size={16} color="#0284C7" />;
     case 'VIEWED': return <Eye size={16} color="#8B5CF6" />;
-    case 'INVITED': return <MailOpen size={16} color="#10B981" />;
+    case 'ACCEPTED': return <MailOpen size={16} color="#10B981" />;
     case 'REJECTED': return <Clock size={16} color="#EF4444" />;
     default: return <Clock size={16} color={MO_TEXT_SECONDARY} />;
   }
@@ -44,16 +42,15 @@ const getEventIcon = (type: string) => {
 const getEventColor = (type: string) => {
   switch (type) {
     case 'SENT': return '#F3F4F6';
-    case 'DOWNLOADED': return '#E0F2FE';
     case 'VIEWED': return '#EDE9FE';
-    case 'INVITED': return '#D1FAE5';
+    case 'ACCEPTED': return '#D1FAE5';
     case 'REJECTED': return '#FEE2E2';
     default: return '#E5E7EB';
   }
 };
 
 const toTimelineType = (status?: string): TimelineEvent['type'] => {
-  if (status === 'DOWNLOADED' || status === 'VIEWED' || status === 'INVITED' || status === 'REJECTED') {
+  if (status === 'VIEWED' || status === 'ACCEPTED' || status === 'REJECTED') {
     return status;
   }
   return 'SENT';
@@ -78,12 +75,10 @@ const getEventTitle = (status: TimelineEvent['type']) => {
   switch (status) {
     case 'VIEWED':
       return 'Aplikacja została wyświetlona';
-    case 'INVITED':
-      return 'Zaproszenie do kolejnego etapu';
+    case 'ACCEPTED':
+      return 'Kandydat zaproszony do kolejnego etapu';
     case 'REJECTED':
       return 'Aplikacja została odrzucona';
-    case 'DOWNLOADED':
-      return 'Dokumenty kandydata zostały pobrane';
     default:
       return 'Aplikacja została wysłana';
   }
@@ -140,31 +135,29 @@ export default function ApplicationDetailsScreen() {
       return [];
     }
 
-    const created = formatDateParts(application.createdAt);
-    const baseEvent: TimelineEvent = {
-      id: 'base',
-      date: created.date,
-      time: created.time,
-      title: 'Aplikacja została wysłana',
-      type: 'SENT',
-    };
-
-    const lastStatus = application.timeline?.lastEvent?.statusCode;
-    const lastEventTime = application.timeline?.lastEvent?.eventTime;
-
-    if (!lastStatus || lastStatus === 'SENT') {
-      return [baseEvent];
+    const events = application.timeline?.events || [];
+    if (events.length > 0) {
+      return events.map((event, index) => {
+        const eventType = toTimelineType(event.statusCode);
+        const parsedDate = formatDateParts(event.eventTime);
+        return {
+          id: event.id || `event-${index}`,
+          date: parsedDate.date,
+          time: parsedDate.time,
+          title: event.note || getEventTitle(eventType),
+          type: eventType,
+        };
+      });
     }
 
-    const followUpParts = formatDateParts(lastEventTime);
+    const created = formatDateParts(application.createdAt);
     return [
-      baseEvent,
       {
-        id: 'latest',
-        date: followUpParts.date,
-        time: followUpParts.time,
-        title: getEventTitle(toTimelineType(lastStatus)),
-        type: toTimelineType(lastStatus),
+        id: 'base',
+        date: created.date,
+        time: created.time,
+        title: 'Aplikacja została wysłana',
+        type: 'SENT',
       },
     ];
   }, [application]);
@@ -237,10 +230,10 @@ export default function ApplicationDetailsScreen() {
                 {/* Right side: Content */}
                 <View style={styles.timelineRight}>
                   <View style={styles.eventCard}>
-                    <Text 
+                    <Text
                       style={[
                         styles.eventTitle,
-                        event.type === 'INVITED' && styles.eventTitleSuccess
+                        event.type === 'ACCEPTED' && styles.eventTitleSuccess,
                       ]}
                     >
                       {event.title}

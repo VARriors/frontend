@@ -1,3 +1,5 @@
+import { Platform } from 'react-native';
+
 import {
   type Aktywnosc,
   type Certyfikat,
@@ -99,6 +101,14 @@ type CandidateApplicationsResponse = {
 export type CandidateApplicationDetails = CandidateApplicationItem & {
   timeline?: {
     eventsCount: number;
+    events?: Array<{
+      id: string;
+      statusCode?: string;
+      eventTime?: string;
+      actorRole?: string;
+      actorId?: string;
+      note?: string;
+    }>;
     lastEvent?: {
       statusCode?: string;
       eventTime?: string;
@@ -143,13 +153,19 @@ type UrzadPracyPayload = {
   };
 };
 
-const API_BASE_URL = (process.env.EXPO_PUBLIC_API_BASE_URL || 'http://127.0.0.1:5000')
+const DEFAULT_API_HOST = Platform.OS === 'web' ? 'http://127.0.0.1:5000' : 'http://10.0.2.2:5000';
+const RAW_API_BASE_URL =
+  process.env.EXPO_PUBLIC_API_BASE_URL ||
+  process.env.EXPO_PUBLIC_API_URL ||
+  DEFAULT_API_HOST;
+
+const API_BASE_URL = RAW_API_BASE_URL
   .replace(/\/$/, '')
   .replace(/\/api$/, '');
-const CANDIDATE_ID = process.env.EXPO_PUBLIC_CANDIDATE_ID || '65f1a2b3c4d5e6f7a8b9c0d1';
+const CANDIDATE_ID = process.env.EXPO_PUBLIC_CANDIDATE_ID || '';
 const CANDIDATE_ID_STORAGE_KEY = 'mpraca_candidate_id';
 
-let runtimeCandidateId = '65f1a2b3c4d5e6f7a8b9c0d1'; // Force using mocked candidate for now
+let runtimeCandidateId = CANDIDATE_ID.trim();
 
 const readStoredCandidateId = () => {
   if (typeof localStorage === 'undefined') {
@@ -209,15 +225,16 @@ const asRecord = (value: unknown): Record<string, unknown> =>
   value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
 
 const getRequiredCandidateId = () => {
-    return '65f1a2b3c4d5e6f7a8b9c0d1'; // Mocked real candidatedId
-  };
+  if (!runtimeCandidateId) {
+    throw new Error('Missing candidate ID. Open questionnaire once to initialize profile.');
+  }
+  return runtimeCandidateId;
+};
 
-  const parseApiError = async (response: Response) => {
-    try {
-      const payload = await response.json();
-      if (typeof payload?.error === 'string') {
-        if (payload?.details) {
-      }
+const parseApiError = async (response: Response) => {
+  try {
+    const payload = await response.json();
+    if (typeof payload?.error === 'string') {
       return payload.error;
     }
   } catch {
@@ -228,22 +245,43 @@ const getRequiredCandidateId = () => {
 };
 
 const apiRequest = async <T>(path: string, method: ApiMethod, body?: unknown): Promise<T> => {
-  const candidateId = getRequiredCandidateId();
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-      'X-Candidate-Id': candidateId,
-    },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
-
-  if (!response.ok) {
-    throw new Error(await parseApiError(response));
+  if (!runtimeCandidateId) {
+    await seedDemoCandidate();
   }
 
-  return (await response.json()) as T;
+  let candidateId = getRequiredCandidateId();
+
+  const sendRequest = async (resolvedCandidateId: string) => {
+    const response = await fetch(`${API_BASE_URL}${path}`, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        'X-Candidate-Id': resolvedCandidateId,
+      },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const errorMessage = await parseApiError(response);
+      throw new Error(errorMessage);
+    }
+
+    return (await response.json()) as T;
+  };
+
+  try {
+    return await sendRequest(candidateId);
+  } catch (error) {
+    const message = error instanceof Error ? error.message.toLowerCase() : '';
+    if (!message.includes('candidate not found')) {
+      throw error;
+    }
+
+    const seededCandidateId = await seedDemoCandidate();
+    candidateId = seededCandidateId;
+    return sendRequest(candidateId);
+  }
 };
 
 const extractFieldValue = <T>(fields: Record<string, QuestionnaireFieldPayload>, field: string, fallback: T): T => {
