@@ -1,10 +1,14 @@
 import {JobOffer} from '@/src/services/mPraca/candidate/data/MockData';
 import {fetchJobs} from '@/src/services/api';
-<<<<<<< HEAD
-import {Briefcase, Search, SlidersHorizontal, ChevronRight, Filter, Calendar} from 'lucide-react-native';
-=======
-import {Briefcase, Search, SlidersHorizontal, ChevronRight, ChevronDown, Filter} from 'lucide-react-native';
->>>>>>> 3b54041c6f4113d1e1a08c8093944dfedf57e2e7
+import {
+  Briefcase,
+  Search,
+  SlidersHorizontal,
+  ChevronRight,
+  ChevronDown,
+  Filter,
+  Calendar,
+} from 'lucide-react-native';
 import React, {useEffect, useState, useCallback} from 'react';
 import {
   FlatList,
