@@ -9,7 +9,7 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
 Create a `.env` file in this folder and set:
 
 ```bash
-EXPO_PUBLIC_API_BASE_URL=http://127.0.0.1:5000
+EXPO_PUBLIC_API_BASE_URL=http://127.0.0.1:5001
 EXPO_PUBLIC_CANDIDATE_ID=<mongo_candidate_object_id>
 ```
 

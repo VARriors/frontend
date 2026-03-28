@@ -36,7 +36,7 @@ export default function PreferencesScreen() {
   useEffect(() => {
     const fetchCurrentPreferences = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/candidates/questionnaire/${candidateId}`);
+        const response = await fetch(`http://localhost:5001/api/candidates/questionnaire/${candidateId}`);
         if (response.ok) {
           const data = await response.json();
           const currentPrefs = data.questionnaire?.fields?.preferencje?.value || [];
@@ -63,7 +63,7 @@ export default function PreferencesScreen() {
   const handleSave = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:5000/api/candidates/questionnaire/${candidateId}/user-input`, {
+      const response = await fetch(`http://localhost:5001/api/candidates/questionnaire/${candidateId}/user-input`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

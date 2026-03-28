@@ -4,7 +4,7 @@
  * Handles CV requirement checks before job application.
  */
 
-const API_BASE_URL = (process.env.EXPO_PUBLIC_API_BASE_URL || 'http://127.0.0.1:5000').replace(/\/$/, '');
+const API_BASE_URL = (process.env.EXPO_PUBLIC_API_BASE_URL || 'http://127.0.0.1:5001').replace(/\/$/, '');
 
 interface JobCVRequirement {
   job_id: string;
