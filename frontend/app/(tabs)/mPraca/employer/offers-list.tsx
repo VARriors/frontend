@@ -69,7 +69,9 @@ export default function EmployerOffersListScreen() {
   }, []);
 
   const openCandidatesForOffer = (offer: EmployerJobOffer) => {
+    console.log('Opening candidates for offer:', offer);
     const employerId = resolveEmployerIdForApp(true);
+    console.log('Employer ID:', employerId);
     router.push({
       pathname: '/(tabs)/mPraca/employer/candidates-list',
       params: { jobId: offer.id, jobTitle: offer.title, employerId },
