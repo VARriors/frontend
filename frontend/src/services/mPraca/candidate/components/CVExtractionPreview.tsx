@@ -10,7 +10,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  ScrollView,
   StyleSheet,
   Alert,
   Platform,
@@ -23,7 +22,6 @@ import {
   Languages,
   Zap,
   Trash2,
-  Copy,
 } from 'lucide-react-native';
 
 interface ExtractedData {
@@ -87,6 +85,28 @@ const CVExtractionPreview: React.FC<CVExtractionPreviewProps> = ({
           text: 'Auto-fill',
           onPress: () => onAutoFill(extractedData),
         },
+      ],
+    );
+  };
+
+  const handleDelete = () => {
+    if (!onDelete) {
+      return;
+    }
+
+    // RN Web Alert callback handling is inconsistent across browsers,
+    // so trigger delete directly there.
+    if (Platform.OS === 'web') {
+      onDelete();
+      return;
+    }
+
+    Alert.alert(
+      'Delete CV?',
+      'You can upload a new CV anytime.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', onPress: onDelete, style: 'destructive' },
       ],
     );
   };
@@ -212,18 +232,7 @@ const CVExtractionPreview: React.FC<CVExtractionPreviewProps> = ({
 
         <TouchableOpacity
           style={[styles.button, styles.deleteButton]}
-          onPress={() => {
-            if (onDelete) {
-              Alert.alert(
-                'Delete CV?',
-                'You can upload a new CV anytime.',
-                [
-                  { text: 'Cancel', style: 'cancel' },
-                  { text: 'Delete', onPress: onDelete, style: 'destructive' },
-                ],
-              );
-            }
-          }}
+          onPress={handleDelete}
           disabled={loading}
         >
           <Trash2 size={18} color="#EF4444" />
