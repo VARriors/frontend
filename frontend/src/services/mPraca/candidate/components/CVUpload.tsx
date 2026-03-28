@@ -115,10 +115,10 @@ const CVUpload: React.FC<CVUploadProps> = ({
         >
           <Upload size={32} color={disabled ? '#9CA3AF' : '#3B82F6'} style={styles.uploadIcon} />
           <Text style={[styles.uploadButtonText, disabled && styles.uploadButtonTextDisabled]}>
-            {disabled ? 'CV already attached' : 'Select PDF CV'}
+            {disabled ? 'CV już załączonę' : 'Dodaj swoje CV'}
           </Text>
           <Text style={styles.uploadButtonSubtext}>
-            {disabled ? 'Delete current CV to upload another one' : 'Tap to choose a file from your device'}
+            {disabled ? 'Usuń obecne CV, aby wgrać inne' : 'Kliknij, aby wybrać plik PDF z Twojego urządzenia'}
           </Text>
         </TouchableOpacity>
       ) : (
@@ -157,7 +157,7 @@ const CVUpload: React.FC<CVUploadProps> = ({
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#3B82F6" />
           <Text style={styles.loadingText}>
-            {isUploading ? 'Uploading and analyzing CV...' : 'Processing...'}
+            {isUploading ? 'Wgrywanie i analiza...' : 'Przetwarzanie...'}
           </Text>
         </View>
       )}
