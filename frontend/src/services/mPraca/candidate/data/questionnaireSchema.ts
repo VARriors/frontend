@@ -37,6 +37,22 @@ export const BRANZE = [
   'Służba Zdrowia',
 ] as const;
 
+// ─── Typy umów ──────────────────────────────────────────────────
+export const TYPY_UMOWY = [
+  'Umowa o pracę',
+  'Umowa zlecenie',
+  'Umowa o dzieło',
+  'B2B (Kontrakt)',
+  'Staź / Praktyki',
+] as const;
+
+// ─── Wymiar etatu ───────────────────────────────────────────────
+export const WYMIAR_ETATU = [
+  'Pełny etat',
+  'Część etatu',
+  'Praca dodatkowa',
+] as const;
+
 // ─── Sub-schemas ──────────────────────────────────────────────────
 
 /** Doświadczenie zawodowe – matches backend doswiadczenia_zawodowe[] */
@@ -101,7 +117,7 @@ export const questionnaireFormSchema = z.object({
   //    bo dane przychodzą z backendu, ale definiujemy dla kompletności typów)
   imie: z.string().min(1, 'Imię jest wymagane'),
   nazwisko: z.string().min(1, 'Nazwisko jest wymagane'),
-  pesel: z.string().optional().or(z.literal('')), 
+  pesel: z.string().optional().or(z.literal('')),
   dowod: z.string().optional().or(z.literal('')),
   niepelnosprawnosc: z.boolean(),
 
@@ -121,6 +137,14 @@ export const questionnaireFormSchema = z.object({
   preferencje: z
     .array(z.string())
     .min(1, 'Wybierz przynajmniej jedną branżę'),
+
+  pref_typ_umowy: z
+    .string()
+    .min(1, 'Wybierz rodzaj umowy'),
+
+  pref_wymiar_etatu: z
+    .string()
+    .min(1, 'Wybierz wymiar etatu'),
 
   wojewodztwo: z.string().min(1, 'Województwo jest wymagane'),
   miasto: z.string().optional(),

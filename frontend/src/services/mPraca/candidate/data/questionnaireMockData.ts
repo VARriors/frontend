@@ -13,6 +13,8 @@ export const QUESTIONNAIRE_DEFAULT_VALUES: QuestionnaireFormValues = {
   nr_telefonu: '',
   email: '',
   preferencje: [],
+  pref_typ_umowy: [],
+  pref_wymiar_etatu: [],
   wojewodztwo: '',
   miasto: '',
 

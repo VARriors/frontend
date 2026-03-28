@@ -1,10 +1,19 @@
 export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:5000/api';
 
-export const fetchJobs = async (query = '') => {
+export const fetchJobs = async (query = '', category = '', employmentType = '', workTime = '') => {
   try {
     const url = new URL(`${API_BASE_URL}/jobs`);
     if (query) {
       url.searchParams.append('q', query);
+    }
+    if (category && category !== 'Wszystkie') {
+      url.searchParams.append('category', category);
+    }
+    if (employmentType && employmentType !== 'Dowolna') {
+      url.searchParams.append('employment_type', employmentType);
+    }
+    if (workTime && workTime !== 'Dowolny') {
+      url.searchParams.append('work_time', workTime);
     }
     const response = await fetch(url.toString());
     if (!response.ok) {
