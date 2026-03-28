@@ -1,9 +1,27 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform, Alert, ActivityIndicator, Modal } from 'react-native';
-import { API_BASE_URL, fetchEmployerByNip } from '@/src/services/api';
-import { getStoredEmployerCompany, getStoredEmployerNip, resolveEmployerIdForApp, saveEmployerSession } from '@/src/services/mPraca/employer/data/EmployerSession';
-import { router } from 'expo-router';
-import { CheckCircle, X, Calendar } from 'lucide-react-native';
+import React, {useEffect, useState} from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  ScrollView,
+  TouchableOpacity,
+  SafeAreaView,
+  KeyboardAvoidingView,
+  Platform,
+  Alert,
+  ActivityIndicator,
+  Modal,
+} from 'react-native';
+import {API_BASE_URL, fetchEmployerByNip} from '@/src/services/api';
+import {
+  getStoredEmployerCompany,
+  getStoredEmployerNip,
+  resolveEmployerIdForApp,
+  saveEmployerSession,
+} from '@/src/services/mPraca/employer/data/EmployerSession';
+import {router} from 'expo-router';
+import {CheckCircle, X, Calendar} from 'lucide-react-native';
 
 const MO_BLUE = '#0052A5';
 const MO_WHITE = '#FFFFFF';
@@ -75,7 +93,7 @@ const buildMonthMatrix = (month: Date): Date[][] => {
 
 const formatMonthLabel = (month: Date) => {
   try {
-    return month.toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' });
+    return month.toLocaleDateString('pl-PL', {month: 'long', year: 'numeric'});
   } catch {
     return `${month.getMonth() + 1}.${month.getFullYear()}`;
   }
@@ -143,22 +161,20 @@ export default function CreateJobOfferScreen() {
   }, []);
 
   const handleToggleLanguage = (language: string) => {
-    setLanguages((prev) =>
-      prev.includes(language) ? prev.filter((l) => l !== language) : [...prev, language]
+    setLanguages(prev =>
+      prev.includes(language) ? prev.filter(l => l !== language) : [...prev, language],
     );
   };
 
   const handleToggleTag = (tag: string) => {
-    setSelectedTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
-    );
+    setSelectedTags(prev => (prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]));
   };
 
   const handleAddLanguage = () => {
     const trimmed = newLanguageName.trim();
     if (!trimmed) return;
     if (extraLanguages.includes(trimmed) || LANGUAGE_OPTIONS.includes(trimmed)) return;
-    setExtraLanguages((prev) => [...prev, trimmed]);
+    setExtraLanguages(prev => [...prev, trimmed]);
     setNewLanguageName('');
   };
 
@@ -166,7 +182,7 @@ export default function CreateJobOfferScreen() {
     const trimmed = newTagName.trim();
     if (!trimmed) return;
     if (customTags.includes(trimmed)) return;
-    setCustomTags((prev) => [...prev, trimmed]);
+    setCustomTags(prev => [...prev, trimmed]);
     setNewTagName('');
   };
 
@@ -174,7 +190,7 @@ export default function CreateJobOfferScreen() {
     const trimmed = newResponsibility.trim();
     if (!trimmed) return;
     if (responsibilities.includes(trimmed)) return;
-    setResponsibilities((prev) => [...prev, trimmed]);
+    setResponsibilities(prev => [...prev, trimmed]);
     setNewResponsibility('');
   };
 
@@ -182,16 +198,16 @@ export default function CreateJobOfferScreen() {
     const trimmed = newBenefit.trim();
     if (!trimmed) return;
     if (benefits.includes(trimmed)) return;
-    setBenefits((prev) => [...prev, trimmed]);
+    setBenefits(prev => [...prev, trimmed]);
     setNewBenefit('');
   };
 
   const handleRemoveResponsibility = (item: string) => {
-    setResponsibilities((prev) => prev.filter((i) => i !== item));
+    setResponsibilities(prev => prev.filter(i => i !== item));
   };
 
   const handleRemoveBenefit = (item: string) => {
-    setBenefits((prev) => prev.filter((i) => i !== item));
+    setBenefits(prev => prev.filter(i => i !== item));
   };
 
   const handleAddRequirement = () => {
@@ -203,7 +219,7 @@ export default function CreateJobOfferScreen() {
       name: nameTrimmed,
       description: descTrimmed,
     };
-    setRegRequirements((prev) => [...prev, newReq]);
+    setRegRequirements(prev => [...prev, newReq]);
     setNewRegName('');
     setNewRegDescription('');
   };
@@ -289,7 +305,7 @@ export default function CreateJobOfferScreen() {
           expectations: expectations,
           responsibilities: responsibilities,
           benefits: benefits,
-          application_deadline: applicationDeadline
+          application_deadline: applicationDeadline,
         }),
       });
 
@@ -305,9 +321,9 @@ export default function CreateJobOfferScreen() {
     } catch (error) {
       console.error('Failed to create job offer:', error);
       if (Platform.OS === 'web') {
-        window.alert("Błąd: Nie udało się zapisać oferty. Sprawdź połączenie.");
+        window.alert('Błąd: Nie udało się zapisać oferty. Sprawdź połączenie.');
       } else {
-        Alert.alert("Błąd", "Nie udało się zapisać oferty. Sprawdź połączenie.");
+        Alert.alert('Błąd', 'Nie udało się zapisać oferty. Sprawdź połączenie.');
       }
       setLoading(false);
     }
@@ -329,10 +345,10 @@ export default function CreateJobOfferScreen() {
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         style={styles.keyboardView}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled">
           <Text style={styles.pageTitle}>Nowa Oferta mPraca</Text>
 
           {/* 0. Dane Pracodawcy */}
@@ -376,10 +392,10 @@ export default function CreateJobOfferScreen() {
                 placeholder="np. Kucharz, Sprzedawca, Programista"
                 placeholderTextColor="#9CA3AF"
                 value={title}
-                onChangeText={(text) => {
+                onChangeText={text => {
                   setTitle(text);
                   if (errors.title) {
-                    setErrors((prev) => ({ ...prev, title: undefined }));
+                    setErrors(prev => ({...prev, title: undefined}));
                   }
                 }}
                 accessibilityLabel="Pole edycji nazwy stanowiska"
@@ -389,25 +405,16 @@ export default function CreateJobOfferScreen() {
 
             <Text style={styles.label}>Poziom stanowiska</Text>
             <View style={styles.segmentedControl}>
-              {POSITION_LEVELS.map((level) => {
+              {POSITION_LEVELS.map(level => {
                 const isActive = positionLevel === level;
                 return (
                   <TouchableOpacity
                     key={level}
-                    style={[
-                      styles.segmentButton,
-                      isActive && styles.segmentActive,
-                    ]}
+                    style={[styles.segmentButton, isActive && styles.segmentActive]}
                     onPress={() => setPositionLevel(level)}
                     accessibilityRole="radio"
-                    accessibilityState={{ checked: isActive }}
-                  >
-                    <Text
-                      style={[
-                        styles.segmentText,
-                        isActive && styles.segmentTextActive,
-                      ]}
-                    >
+                    accessibilityState={{checked: isActive}}>
+                    <Text style={[styles.segmentText, isActive && styles.segmentTextActive]}>
                       {level}
                     </Text>
                   </TouchableOpacity>
@@ -425,36 +432,28 @@ export default function CreateJobOfferScreen() {
                 <Text style={styles.label}>Tryb pracy</Text>
                 <Text style={styles.requiredMark}>*</Text>
               </View>
-              <View style={[styles.segmentedControl, errors.workMode && styles.segmentedControlError]}>
-              {WORK_MODES.map((mode) => {
-                const isActive = workMode === mode;
-                return (
-                  <TouchableOpacity
-                    key={mode}
-                    style={[
-                      styles.segmentButton,
-                      isActive && styles.segmentActive,
-                    ]}
-                    onPress={() => {
-                      setWorkMode(mode);
-                      if (errors.workMode) {
-                        setErrors((prev) => ({ ...prev, workMode: undefined }));
-                      }
-                    }}
-                    accessibilityRole="radio"
-                    accessibilityState={{ checked: isActive }}
-                  >
-                    <Text
-                      style={[
-                        styles.segmentText,
-                        isActive && styles.segmentTextActive,
-                      ]}
-                    >
-                      {mode}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
+              <View
+                style={[styles.segmentedControl, errors.workMode && styles.segmentedControlError]}>
+                {WORK_MODES.map(mode => {
+                  const isActive = workMode === mode;
+                  return (
+                    <TouchableOpacity
+                      key={mode}
+                      style={[styles.segmentButton, isActive && styles.segmentActive]}
+                      onPress={() => {
+                        setWorkMode(mode);
+                        if (errors.workMode) {
+                          setErrors(prev => ({...prev, workMode: undefined}));
+                        }
+                      }}
+                      accessibilityRole="radio"
+                      accessibilityState={{checked: isActive}}>
+                      <Text style={[styles.segmentText, isActive && styles.segmentTextActive]}>
+                        {mode}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
               {errors.workMode && <Text style={styles.errorText}>{errors.workMode}</Text>}
             </View>
@@ -465,7 +464,11 @@ export default function CreateJobOfferScreen() {
                 <Text style={styles.requiredMark}>*</Text>
               </View>
               <TextInput
-                style={[styles.input, styles.disabledInput, errors.companyLocation && styles.inputError]}
+                style={[
+                  styles.input,
+                  styles.disabledInput,
+                  errors.companyLocation && styles.inputError,
+                ]}
                 value={companyLocation}
                 editable={false}
                 placeholderTextColor="#9CA3AF"
@@ -474,25 +477,21 @@ export default function CreateJobOfferScreen() {
               <Text style={styles.helperText}>
                 Dane adresowe pobieramy automatycznie po NIP firmy.
               </Text>
-              {errors.companyLocation && <Text style={styles.errorText}>{errors.companyLocation}</Text>}
+              {errors.companyLocation && (
+                <Text style={styles.errorText}>{errors.companyLocation}</Text>
+              )}
             </View>
 
             <TouchableOpacity
               style={styles.checkboxRow}
-              onPress={() => setUseDifferentLocation((prev) => !prev)}
+              onPress={() => setUseDifferentLocation(prev => !prev)}
               accessibilityRole="checkbox"
-              accessibilityState={{ checked: useDifferentLocation }}
-            >
+              accessibilityState={{checked: useDifferentLocation}}>
               <View
-                style={[
-                  styles.checkboxBox,
-                  useDifferentLocation && styles.checkboxBoxChecked,
-                ]}
+                style={[styles.checkboxBox, useDifferentLocation && styles.checkboxBoxChecked]}
               />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.checkboxLabel}>
-                  Inna lokalizacja niż siedziba firmy
-                </Text>
+              <View style={{flex: 1}}>
+                <Text style={styles.checkboxLabel}>Inna lokalizacja niż siedziba firmy</Text>
                 <Text style={styles.helperText}>
                   Np. inny lokal, kuchnia produkcyjna lub oddział.
                 </Text>
@@ -523,36 +522,31 @@ export default function CreateJobOfferScreen() {
                 <Text style={styles.label}>Rodzaj umowy</Text>
                 <Text style={styles.requiredMark}>*</Text>
               </View>
-              <View style={[styles.segmentedControl, errors.contractType && styles.segmentedControlError]}>
-              {CONTRACT_TYPES.map((type) => {
-                const isActive = contractType === type;
-                return (
-                  <TouchableOpacity
-                    key={type}
-                    style={[
-                      styles.segmentButton,
-                      isActive && styles.segmentActive,
-                    ]}
-                    onPress={() => {
-                      setContractType(type);
-                      if (errors.contractType) {
-                        setErrors((prev) => ({ ...prev, contractType: undefined }));
-                      }
-                    }}
-                    accessibilityRole="radio"
-                    accessibilityState={{ checked: isActive }}
-                  >
-                    <Text
-                      style={[
-                        styles.segmentText,
-                        isActive && styles.segmentTextActive,
-                      ]}
-                    >
-                      {type}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
+              <View
+                style={[
+                  styles.segmentedControl,
+                  errors.contractType && styles.segmentedControlError,
+                ]}>
+                {CONTRACT_TYPES.map(type => {
+                  const isActive = contractType === type;
+                  return (
+                    <TouchableOpacity
+                      key={type}
+                      style={[styles.segmentButton, isActive && styles.segmentActive]}
+                      onPress={() => {
+                        setContractType(type);
+                        if (errors.contractType) {
+                          setErrors(prev => ({...prev, contractType: undefined}));
+                        }
+                      }}
+                      accessibilityRole="radio"
+                      accessibilityState={{checked: isActive}}>
+                      <Text style={[styles.segmentText, isActive && styles.segmentTextActive]}>
+                        {type}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
               {errors.contractType && <Text style={styles.errorText}>{errors.contractType}</Text>}
             </View>
@@ -562,36 +556,28 @@ export default function CreateJobOfferScreen() {
                 <Text style={styles.label}>Wymiar etatu</Text>
                 <Text style={styles.requiredMark}>*</Text>
               </View>
-              <View style={[styles.segmentedControl, errors.workTime && styles.segmentedControlError]}>
-              {WORK_TIME_OPTIONS.map((option) => {
-                const isActive = workTime === option;
-                return (
-                  <TouchableOpacity
-                    key={option}
-                    style={[
-                      styles.segmentButton,
-                      isActive && styles.segmentActive,
-                    ]}
-                    onPress={() => {
-                      setWorkTime(option);
-                      if (errors.workTime) {
-                        setErrors((prev) => ({ ...prev, workTime: undefined }));
-                      }
-                    }}
-                    accessibilityRole="radio"
-                    accessibilityState={{ checked: isActive }}
-                  >
-                    <Text
-                      style={[
-                        styles.segmentText,
-                        isActive && styles.segmentTextActive,
-                      ]}
-                    >
-                      {option}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
+              <View
+                style={[styles.segmentedControl, errors.workTime && styles.segmentedControlError]}>
+                {WORK_TIME_OPTIONS.map(option => {
+                  const isActive = workTime === option;
+                  return (
+                    <TouchableOpacity
+                      key={option}
+                      style={[styles.segmentButton, isActive && styles.segmentActive]}
+                      onPress={() => {
+                        setWorkTime(option);
+                        if (errors.workTime) {
+                          setErrors(prev => ({...prev, workTime: undefined}));
+                        }
+                      }}
+                      accessibilityRole="radio"
+                      accessibilityState={{checked: isActive}}>
+                      <Text style={[styles.segmentText, isActive && styles.segmentTextActive]}>
+                        {option}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
               {errors.workTime && <Text style={styles.errorText}>{errors.workTime}</Text>}
             </View>
@@ -606,10 +592,10 @@ export default function CreateJobOfferScreen() {
                 placeholder="np. 5000 - 7000 brutto"
                 placeholderTextColor="#9CA3AF"
                 value={salary}
-                onChangeText={(text) => {
+                onChangeText={text => {
                   setSalary(text);
                   if (errors.salary) {
-                    setErrors((prev) => ({ ...prev, salary: undefined }));
+                    setErrors(prev => ({...prev, salary: undefined}));
                   }
                 }}
                 accessibilityLabel="Pole edycji wynagrodzenia"
@@ -636,23 +622,14 @@ export default function CreateJobOfferScreen() {
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Minimalne wykształcenie</Text>
               <View style={styles.segmentedControl}>
-                {EDUCATION_LEVELS.map((level) => {
+                {EDUCATION_LEVELS.map(level => {
                   const isActive = minEducationLevel === level;
                   return (
                     <TouchableOpacity
                       key={level}
-                      style={[
-                        styles.segmentButton,
-                        isActive && styles.segmentActive,
-                      ]}
-                      onPress={() => setMinEducationLevel(level)}
-                    >
-                      <Text
-                        style={[
-                          styles.segmentText,
-                          isActive && styles.segmentTextActive,
-                        ]}
-                      >
+                      style={[styles.segmentButton, isActive && styles.segmentActive]}
+                      onPress={() => setMinEducationLevel(level)}>
+                      <Text style={[styles.segmentText, isActive && styles.segmentTextActive]}>
                         {level}
                       </Text>
                     </TouchableOpacity>
@@ -680,10 +657,11 @@ export default function CreateJobOfferScreen() {
           <View style={styles.prioritiesSection}>
             <Text style={styles.sectionTitle}>Uprawnienia i certyfikaty państwowe (AI Match)</Text>
             <Text style={styles.sectionSubtitle}>
-              Dodaj konkretne uprawnienia lub certyfikaty, które są wymagane (np. SEP, UDT, licencje zawodowe).
+              Dodaj konkretne uprawnienia lub certyfikaty, które są wymagane (np. SEP, UDT, licencje
+              zawodowe).
             </Text>
 
-            {regRequirements.map((req) => (
+            {regRequirements.map(req => (
               <View key={req.id} style={styles.requirementItem}>
                 <Text style={styles.requirementTitle}>{req.name}</Text>
                 <Text style={styles.requirementDescription}>{req.description}</Text>
@@ -718,8 +696,7 @@ export default function CreateJobOfferScreen() {
               <TouchableOpacity
                 style={styles.addButton}
                 onPress={handleAddRequirement}
-                accessibilityRole="button"
-              >
+                accessibilityRole="button">
                 <Text style={styles.addButtonText}>+ Dodaj uprawnienie</Text>
               </TouchableOpacity>
             </View>
@@ -728,36 +705,27 @@ export default function CreateJobOfferScreen() {
           {/* Języki obce */}
           <View style={styles.sectionCard}>
             <Text style={styles.sectionTitle}>Języki obce</Text>
-            <Text style={styles.sectionSubtitle}>Zaznacz, w jakich językach kandydat powinien się komunikować.</Text>
+            <Text style={styles.sectionSubtitle}>
+              Zaznacz, w jakich językach kandydat powinien się komunikować.
+            </Text>
             <View style={styles.chipRow}>
-              {[...LANGUAGE_OPTIONS, ...extraLanguages].map((lang) => {
+              {[...LANGUAGE_OPTIONS, ...extraLanguages].map(lang => {
                 const isActive = languages.includes(lang);
                 return (
                   <TouchableOpacity
                     key={lang}
-                    style={[
-                      styles.chip,
-                      isActive && styles.chipActive,
-                    ]}
+                    style={[styles.chip, isActive && styles.chipActive]}
                     onPress={() => handleToggleLanguage(lang)}
                     accessibilityRole="checkbox"
-                    accessibilityState={{ checked: isActive }}
-                  >
-                    <Text
-                      style={[
-                        styles.chipText,
-                        isActive && styles.chipTextActive,
-                      ]}
-                    >
-                      {lang}
-                    </Text>
+                    accessibilityState={{checked: isActive}}>
+                    <Text style={[styles.chipText, isActive && styles.chipTextActive]}>{lang}</Text>
                   </TouchableOpacity>
                 );
               })}
             </View>
 
             <View style={styles.addRow}>
-              <View style={{ flex: 1 }}>
+              <View style={{flex: 1}}>
                 <Text style={styles.label}>Dodaj inny język</Text>
                 <TextInput
                   style={styles.input}
@@ -771,8 +739,7 @@ export default function CreateJobOfferScreen() {
               <TouchableOpacity
                 style={styles.addIconButton}
                 onPress={handleAddLanguage}
-                accessibilityRole="button"
-              >
+                accessibilityRole="button">
                 <Text style={styles.addIconText}>+</Text>
               </TouchableOpacity>
             </View>
@@ -800,37 +767,27 @@ export default function CreateJobOfferScreen() {
           <View style={styles.sectionCard}>
             <Text style={styles.sectionTitle}>Tagi – charakter pracy</Text>
             <Text style={styles.sectionSubtitle}>
-              Dodaj własne tagi opisujące charakter pracy (np. praca fizyczna, MS Office, obsługa klienta).
+              Dodaj własne tagi opisujące charakter pracy (np. praca fizyczna, MS Office, obsługa
+              klienta).
             </Text>
             <View style={styles.chipRow}>
-              {customTags.map((tag) => {
+              {customTags.map(tag => {
                 const isActive = selectedTags.includes(tag);
                 return (
                   <TouchableOpacity
                     key={tag}
-                    style={[
-                      styles.chip,
-                      isActive && styles.chipActive,
-                    ]}
+                    style={[styles.chip, isActive && styles.chipActive]}
                     onPress={() => handleToggleTag(tag)}
                     accessibilityRole="checkbox"
-                    accessibilityState={{ checked: isActive }}
-                  >
-                    <Text
-                      style={[
-                        styles.chipText,
-                        isActive && styles.chipTextActive,
-                      ]}
-                    >
-                      {tag}
-                    </Text>
+                    accessibilityState={{checked: isActive}}>
+                    <Text style={[styles.chipText, isActive && styles.chipTextActive]}>{tag}</Text>
                   </TouchableOpacity>
                 );
               })}
             </View>
 
             <View style={styles.addRow}>
-              <View style={{ flex: 1 }}>
+              <View style={{flex: 1}}>
                 <Text style={styles.label}>Dodaj tag</Text>
                 <TextInput
                   style={styles.input}
@@ -844,8 +801,7 @@ export default function CreateJobOfferScreen() {
               <TouchableOpacity
                 style={styles.addIconButton}
                 onPress={handleAddTag}
-                accessibilityRole="button"
-              >
+                accessibilityRole="button">
                 <Text style={styles.addIconText}>+</Text>
               </TouchableOpacity>
             </View>
@@ -858,29 +814,32 @@ export default function CreateJobOfferScreen() {
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Główne obowiązki</Text>
               <View style={styles.chipContainer}>
-                {responsibilities.map((item) => (
+                {responsibilities.map(item => (
                   <View key={item} style={styles.tagChip}>
                     <Text style={styles.tagChipText}>{item}</Text>
-                    <TouchableOpacity onPress={() => handleRemoveResponsibility(item)} style={{ marginLeft: 6 }}>
+                    <TouchableOpacity
+                      onPress={() => handleRemoveResponsibility(item)}
+                      style={{marginLeft: 6}}>
                       <X size={14} color={MO_BLUE} />
                     </TouchableOpacity>
                   </View>
                 ))}
               </View>
               <View style={styles.addInputRow}>
-                <TextInput
-                  style={styles.input}
-                  placeholder="np. obsługa klienta, przygotowywanie potraw"
-                  placeholderTextColor="#9CA3AF"
-                  value={newResponsibility}
-                  onChangeText={setNewResponsibility}
-                  accessibilityLabel="Pole edycji nowego obowiązku"
-                />
+                <View style={{flex: 1}}>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="np. obsługa klienta, przygotowywanie potraw"
+                    placeholderTextColor="#9CA3AF"
+                    value={newResponsibility}
+                    onChangeText={setNewResponsibility}
+                    accessibilityLabel="Pole edycji nowego obowiązku"
+                  />
+                </View>
                 <TouchableOpacity
                   style={styles.addIconButton}
                   onPress={handleAddResponsibility}
-                  accessibilityLabel="Przycisk dodaj obowiązek"
-                >
+                  accessibilityLabel="Przycisk dodaj obowiązek">
                   <Text style={styles.addIconText}>+</Text>
                 </TouchableOpacity>
               </View>
@@ -889,29 +848,32 @@ export default function CreateJobOfferScreen() {
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Oferowane benefity</Text>
               <View style={styles.chipContainer}>
-                {benefits.map((item) => (
+                {benefits.map(item => (
                   <View key={item} style={styles.tagChip}>
                     <Text style={styles.tagChipText}>{item}</Text>
-                    <TouchableOpacity onPress={() => handleRemoveBenefit(item)} style={{ marginLeft: 6 }}>
+                    <TouchableOpacity
+                      onPress={() => handleRemoveBenefit(item)}
+                      style={{marginLeft: 6}}>
                       <X size={14} color={MO_BLUE} />
                     </TouchableOpacity>
                   </View>
                 ))}
               </View>
               <View style={styles.addInputRow}>
-                <TextInput
-                  style={styles.input}
-                  placeholder="np. karta sportowa, opieka medyczna"
-                  placeholderTextColor="#9CA3AF"
-                  value={newBenefit}
-                  onChangeText={setNewBenefit}
-                  accessibilityLabel="Pole edycji nowego benefitu"
-                />
+                <View style={{flex: 1}}>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="np. karta sportowa, opieka medyczna"
+                    placeholderTextColor="#9CA3AF"
+                    value={newBenefit}
+                    onChangeText={setNewBenefit}
+                    accessibilityLabel="Pole edycji nowego benefitu"
+                  />
+                </View>
                 <TouchableOpacity
                   style={styles.addIconButton}
                   onPress={handleAddBenefit}
-                  accessibilityLabel="Przycisk dodaj benefit"
-                >
+                  accessibilityLabel="Przycisk dodaj benefit">
                   <Text style={styles.addIconText}>+</Text>
                 </TouchableOpacity>
               </View>
@@ -931,11 +893,17 @@ export default function CreateJobOfferScreen() {
                   setIsDeadlineCalendarVisible(true);
                 }}
                 accessibilityRole="button"
-                accessibilityLabel="Otwórz kalendarz wyboru daty ważności ogłoszenia"
-              >
+                accessibilityLabel="Otwórz kalendarz wyboru daty ważności ogłoszenia">
                 <View style={styles.dateInputContent}>
-                  <Calendar size={18} color={applicationDeadline ? MO_TEXT_PRIMARY : MO_TEXT_SECONDARY} style={{ marginRight: 8 }} />
-                  <Text style={applicationDeadline ? styles.dateInputText : styles.dateInputPlaceholder}>
+                  <Calendar
+                    size={18}
+                    color={applicationDeadline ? MO_TEXT_PRIMARY : MO_TEXT_SECONDARY}
+                    style={{marginRight: 8}}
+                  />
+                  <Text
+                    style={
+                      applicationDeadline ? styles.dateInputText : styles.dateInputPlaceholder
+                    }>
                     {applicationDeadline
                       ? new Date(applicationDeadline).toLocaleDateString('pl-PL')
                       : 'Wybierz datę z kalendarza'}
@@ -952,25 +920,18 @@ export default function CreateJobOfferScreen() {
           <View style={styles.sectionCard}>
             <Text style={styles.sectionTitle}>Programy wsparcia Urzędu Pracy</Text>
             <Text style={styles.sectionSubtitle}>
-              Jeśli chcesz, możemy pomóc przygotować ofertę pod programy dofinansowania z Urzędu Pracy.
+              Jeśli chcesz, możemy pomóc przygotować ofertę pod programy dofinansowania z Urzędu
+              Pracy.
             </Text>
 
             <TouchableOpacity
               style={styles.checkboxRow}
-              onPress={() => setSendToJobOffice((prev) => !prev)}
+              onPress={() => setSendToJobOffice(prev => !prev)}
               accessibilityRole="checkbox"
-              accessibilityState={{ checked: sendToJobOffice }}
-            >
-              <View
-                style={[
-                  styles.checkboxBox,
-                  sendToJobOffice && styles.checkboxBoxChecked,
-                ]}
-              />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.checkboxLabel}>
-                  Chcę zgłosić ofertę do Urzędu Pracy
-                </Text>
+              accessibilityState={{checked: sendToJobOffice}}>
+              <View style={[styles.checkboxBox, sendToJobOffice && styles.checkboxBoxChecked]} />
+              <View style={{flex: 1}}>
+                <Text style={styles.checkboxLabel}>Chcę zgłosić ofertę do Urzędu Pracy</Text>
                 <Text style={styles.helperText}>
                   Dane z tego pola posłużą do przygotowania wniosku o dofinansowanie.
                 </Text>
@@ -1019,7 +980,6 @@ export default function CreateJobOfferScreen() {
               </>
             )}
           </View>
-
         </ScrollView>
         <View style={styles.footer}>
           <TouchableOpacity
@@ -1028,8 +988,7 @@ export default function CreateJobOfferScreen() {
             activeOpacity={0.8}
             accessibilityRole="button"
             accessibilityLabel="Opublikuj ofertę pracy"
-            disabled={loading}
-          >
+            disabled={loading}>
             {loading ? (
               <ActivityIndicator color={MO_WHITE} />
             ) : (
@@ -1043,8 +1002,7 @@ export default function CreateJobOfferScreen() {
         visible={isDeadlineCalendarVisible}
         transparent
         animationType="fade"
-        onRequestClose={() => setIsDeadlineCalendarVisible(false)}
-      >
+        onRequestClose={() => setIsDeadlineCalendarVisible(false)}>
         <View style={styles.calendarOverlay}>
           <View style={styles.calendarCard}>
             <View style={styles.calendarHeader}>
@@ -1056,8 +1014,7 @@ export default function CreateJobOfferScreen() {
                     return d;
                   });
                 }}
-                style={styles.calendarNavButton}
-              >
+                style={styles.calendarNavButton}>
                 <Text style={styles.calendarNavText}>{'‹'}</Text>
               </TouchableOpacity>
               <Text style={styles.calendarHeaderTitle}>{formatMonthLabel(calendarMonth)}</Text>
@@ -1069,8 +1026,7 @@ export default function CreateJobOfferScreen() {
                     return d;
                   });
                 }}
-                style={styles.calendarNavButton}
-              >
+                style={styles.calendarNavButton}>
                 <Text style={styles.calendarNavText}>{'›'}</Text>
               </TouchableOpacity>
             </View>
@@ -1106,16 +1062,14 @@ export default function CreateJobOfferScreen() {
                         if (isPast) return;
                         setApplicationDeadline(toIsoDate(day));
                         setIsDeadlineCalendarVisible(false);
-                      }}
-                    >
+                      }}>
                       <Text
                         style={[
                           styles.calendarDayText,
                           !isCurrentMonth && styles.calendarDayTextOutside,
                           isPast && styles.calendarDayTextDisabled,
                           isSelected && styles.calendarDayTextSelected,
-                        ]}
-                      >
+                        ]}>
                         {day.getDate()}
                       </Text>
                     </TouchableOpacity>
@@ -1126,8 +1080,7 @@ export default function CreateJobOfferScreen() {
 
             <TouchableOpacity
               style={styles.calendarCloseButton}
-              onPress={() => setIsDeadlineCalendarVisible(false)}
-            >
+              onPress={() => setIsDeadlineCalendarVisible(false)}>
               <Text style={styles.calendarCloseText}>Zamknij</Text>
             </TouchableOpacity>
           </View>
@@ -1138,15 +1091,15 @@ export default function CreateJobOfferScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: MO_WHITE },
-  keyboardView: { flex: 1 },
-  scrollContent: { padding: 20, paddingBottom: 60 },
-  pageTitle: { fontSize: 26, fontWeight: '800', color: MO_TEXT_PRIMARY, marginBottom: 24 },
+  container: {flex: 1, backgroundColor: MO_WHITE},
+  keyboardView: {flex: 1},
+  scrollContent: {padding: 20, paddingBottom: 60},
+  pageTitle: {fontSize: 26, fontWeight: '800', color: MO_TEXT_PRIMARY, marginBottom: 24},
 
-  inputGroup: { marginBottom: 20 },
-  label: { fontSize: 14, fontWeight: '600', color: MO_TEXT_PRIMARY, marginBottom: 8 },
-  labelRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  requiredMark: { marginLeft: 4, color: '#DC2626', fontSize: 14, fontWeight: '700' },
+  inputGroup: {marginBottom: 20},
+  label: {fontSize: 14, fontWeight: '600', color: MO_TEXT_PRIMARY, marginBottom: 8},
+  labelRow: {flexDirection: 'row', alignItems: 'center', marginBottom: 8},
+  requiredMark: {marginLeft: 4, color: '#DC2626', fontSize: 14, fontWeight: '700'},
   input: {
     borderWidth: 1,
     borderColor: MO_BORDER,
@@ -1178,7 +1131,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E5E7EB',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: {width: 0, height: 1},
     shadowOpacity: 0.03,
     shadowRadius: 3,
     elevation: 1,
@@ -1245,12 +1198,12 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
 
-  prioritiesSection: { marginTop: 16, borderTopWidth: 1, borderTopColor: '#F3F4F6', paddingTop: 24 },
-  sectionTitle: { fontSize: 18, fontWeight: '700', color: MO_TEXT_PRIMARY, marginBottom: 4 },
-  sectionSubtitle: { fontSize: 13, color: MO_TEXT_SECONDARY, lineHeight: 18, marginBottom: 20 },
+  prioritiesSection: {marginTop: 16, borderTopWidth: 1, borderTopColor: '#F3F4F6', paddingTop: 24},
+  sectionTitle: {fontSize: 18, fontWeight: '700', color: MO_TEXT_PRIMARY, marginBottom: 4},
+  sectionSubtitle: {fontSize: 13, color: MO_TEXT_SECONDARY, lineHeight: 18, marginBottom: 20},
 
-  priorityRow: { marginBottom: 24 },
-  priorityLabel: { fontSize: 15, fontWeight: '600', color: MO_TEXT_PRIMARY, marginBottom: 12 },
+  priorityRow: {marginBottom: 24},
+  priorityLabel: {fontSize: 15, fontWeight: '600', color: MO_TEXT_PRIMARY, marginBottom: 12},
   requirementItem: {
     marginBottom: 12,
     padding: 12,
@@ -1291,7 +1244,7 @@ const styles = StyleSheet.create({
     backgroundColor: MO_WHITE,
     borderColor: MO_BORDER,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: {width: 0, height: 1},
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 1,
@@ -1321,6 +1274,7 @@ const styles = StyleSheet.create({
   addRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
     marginTop: 8,
   },
   chipContainer: {
@@ -1347,16 +1301,18 @@ const styles = StyleSheet.create({
   addInputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
+    marginTop: 8,
   },
   addIconButton: {
-    marginLeft: 8,
+    marginLeft: 0,
     width: 40,
     height: 40,
     borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: MO_BLUE,
+    flexShrink: 0,
   },
   addIconText: {
     color: MO_WHITE,
@@ -1400,12 +1356,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     shadowColor: MO_BLUE,
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 4,
   },
-  saveButtonText: { color: MO_WHITE, fontSize: 16, fontWeight: '700' },
+  saveButtonText: {color: MO_WHITE, fontSize: 16, fontWeight: '700'},
 
   successOverlay: {
     flex: 1,
@@ -1420,7 +1376,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
+    shadowOffset: {width: 0, height: 8},
     shadowOpacity: 0.1,
     shadowRadius: 24,
     elevation: 8,
