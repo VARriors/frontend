@@ -141,7 +141,9 @@ type UrzadPracyPayload = {
   };
 };
 
-const API_BASE_URL = (process.env.EXPO_PUBLIC_API_BASE_URL || 'http://127.0.0.1:5000').replace(/\/$/, '');
+const API_BASE_URL = (process.env.EXPO_PUBLIC_API_BASE_URL || 'http://127.0.0.1:5000')
+  .replace(/\/$/, '')
+  .replace(/\/api$/, '');
 const CANDIDATE_ID = process.env.EXPO_PUBLIC_CANDIDATE_ID;
 const CANDIDATE_ID_STORAGE_KEY = 'mpraca_candidate_id';
 
