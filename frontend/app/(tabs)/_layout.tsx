@@ -5,7 +5,7 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#0052A5', // mObywatel blue
+        tabBarActiveTintColor: '#0052A5',
         tabBarInactiveTintColor: '#6B7280',
         headerShown: false,
         tabBarStyle: {
@@ -46,15 +46,10 @@ export default function TabLayout() {
         }}
       />
       
-      {/* 
-        Ukryty tab dla modułu mPraca, który nie renderuje się na pasku (href: null).
-        Zapewnia to, że pasek dolny nie znika gdy będziemy korzystali z usług mPraca. 
-      */}
       <Tabs.Screen
         name="mPraca"
         options={{
           href: null,
-          title: 'mPraca',
           headerShown: false,
         }}
       />

@@ -1,14 +1,13 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { MPracaStackParamList } from '../../navigation/types';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 
 export default function EmployerDashboard() {
-  const navigation = useNavigation<NativeStackNavigationProp<MPracaStackParamList>>();
+  const router = useRouter();
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.title}>Panel Pracodawcy</Text>
         <Text style={styles.subtitle}>Zarządzaj rekrutacjami w oparciu o prawdziwe dane mObywatel i filtry AI.</Text>
@@ -16,7 +15,7 @@ export default function EmployerDashboard() {
         <View style={styles.grid}>
           <TouchableOpacity 
             style={styles.card} 
-            onPress={() => navigation.navigate('CreateJobOffer')}
+            onPress={() => router.push('/(tabs)/mPraca/employer/create-job-offer')}
             activeOpacity={0.8}
           >
             <Text style={styles.icon}>📝</Text>
@@ -28,7 +27,7 @@ export default function EmployerDashboard() {
           
           <TouchableOpacity 
             style={styles.card} 
-            onPress={() => navigation.navigate('CandidatesList')}
+            onPress={() => router.push('/(tabs)/mPraca/employer/candidates-list')}
             activeOpacity={0.8}
           >
             <Text style={styles.icon}>👥</Text>

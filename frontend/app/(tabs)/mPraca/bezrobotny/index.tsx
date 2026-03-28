@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { Landmark, ShieldCheck, Mail, CheckCircle2, AlertCircle } from 'lucide-react-native';
+import { AlertCircle, CheckCircle2, Landmark, Mail, ShieldCheck } from 'lucide-react-native';
+import React, { useState } from 'react';
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const MO_BLUE = '#0052A5';
 const MO_TEXT_PRIMARY = '#1F2937';
