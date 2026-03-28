@@ -33,6 +33,7 @@ const EDUCATION_LEVELS: EducationLevel[] = ['Podstawowe', 'Średnie', 'Zawodowe'
 
 type FormErrors = {
   title?: string;
+  companyName?: string;
   workMode?: string;
   companyLocation?: string;
   contractType?: string;
@@ -42,13 +43,12 @@ type FormErrors = {
 
 export default function CreateJobOfferScreen() {
   const [title, setTitle] = useState('');
+  const [companyName, setCompanyName] = useState('');
   const [positionLevel, setPositionLevel] = useState<PositionLevel>('Junior');
 
   const [workMode, setWorkMode] = useState<WorkMode | null>(null);
-  const [companyLocation] = useState('Siedziba firmy na podstawie NIP');
-  const [useDifferentLocation, setUseDifferentLocation] = useState(false);
-  const [customLocation, setCustomLocation] = useState('');
-
+  const [employerNIP, setEmployerNIP] = useState('');
+  const [companyLocation, setCompanyLocation] = useState('');
   const [contractType, setContractType] = useState<ContractType | null>(null);
   const [workTime, setWorkTime] = useState<WorkTime | null>(null);
   const [salary, setSalary] = useState('');
@@ -77,6 +77,8 @@ export default function CreateJobOfferScreen() {
   const [isSuccess, setIsSuccess] = useState(false);
 
   const [errors, setErrors] = useState<FormErrors>({});
+
+
 
   const handleToggleLanguage = (language: string) => {
     setLanguages((prev) =>
@@ -126,6 +128,9 @@ export default function CreateJobOfferScreen() {
     if (!title.trim()) {
       nextErrors.title = 'Stanowisko jest wymagane.';
     }
+    if (!companyName.trim()) {
+      nextErrors.companyName = 'Nazwa firmy jest wymagana.';
+    }
     if (!workMode) {
       nextErrors.workMode = 'Wybierz tryb pracy.';
     }
@@ -162,8 +167,8 @@ export default function CreateJobOfferScreen() {
         },
         body: JSON.stringify({
           title,
-          company: 'Mamas in your buses', 
-          location: useDifferentLocation ? customLocation : companyLocation,
+          company: companyName,
+          location: companyLocation,
           category: '',
           description: expectations,
           salaryRange: salary,
@@ -236,6 +241,39 @@ export default function CreateJobOfferScreen() {
                 accessibilityLabel="Pole edycji nazwy stanowiska"
               />
               {errors.title && <Text style={styles.errorText}>{errors.title}</Text>}
+            </View>
+
+            <View style={styles.inputGroup}>
+              <View style={styles.labelRow}>
+                <Text style={styles.label}>Nazwa firmy</Text>
+                <Text style={styles.requiredMark}>*</Text>
+              </View>
+              <TextInput
+                style={[styles.input, errors.companyName && styles.inputError]}
+                placeholder="np. ABC Corporation"
+                placeholderTextColor="#9CA3AF"
+                value={companyName}
+                onChangeText={(text) => {
+                  setCompanyName(text);
+                  if (errors.companyName) {
+                    setErrors((prev) => ({ ...prev, companyName: undefined }));
+                  }
+                }}
+                accessibilityLabel="Pole edycji nazwy firmy"
+              />
+              {errors.companyName && <Text style={styles.errorText}>{errors.companyName}</Text>}
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>NIP firmy (opcjonalnie)</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="np. 1234567890"
+                placeholderTextColor="#9CA3AF"
+                value={employerNIP}
+                onChangeText={setEmployerNIP}
+                accessibilityLabel="Pole edycji NIP firmy"
+              />
             </View>
 
             <Text style={styles.label}>Poziom stanowiska</Text>
@@ -312,57 +350,24 @@ export default function CreateJobOfferScreen() {
 
             <View style={styles.inputGroup}>
               <View style={styles.labelRow}>
-                <Text style={styles.label}>Lokalizacja (pobierana z NIP)</Text>
+                <Text style={styles.label}>Lokalizacja pracy</Text>
                 <Text style={styles.requiredMark}>*</Text>
               </View>
               <TextInput
-                style={[styles.input, styles.disabledInput, errors.companyLocation && styles.inputError]}
-                value={companyLocation}
-                editable={false}
+                style={[styles.input, errors.companyLocation && styles.inputError]}
+                placeholder="np. Warszawa, ul. Marszałkowska 10"
                 placeholderTextColor="#9CA3AF"
-                accessibilityLabel="Lokalizacja siedziby firmy na podstawie NIP"
+                value={companyLocation}
+                onChangeText={(text) => {
+                  setCompanyLocation(text);
+                  if (errors.companyLocation) {
+                    setErrors((prev) => ({ ...prev, companyLocation: undefined }));
+                  }
+                }}
+                accessibilityLabel="Pole edycji lokalizacji pracy"
               />
-              <Text style={styles.helperText}>
-                Dane adresowe pobieramy automatycznie po NIP firmy.
-              </Text>
               {errors.companyLocation && <Text style={styles.errorText}>{errors.companyLocation}</Text>}
             </View>
-
-            <TouchableOpacity
-              style={styles.checkboxRow}
-              onPress={() => setUseDifferentLocation((prev) => !prev)}
-              accessibilityRole="checkbox"
-              accessibilityState={{ checked: useDifferentLocation }}
-            >
-              <View
-                style={[
-                  styles.checkboxBox,
-                  useDifferentLocation && styles.checkboxBoxChecked,
-                ]}
-              />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.checkboxLabel}>
-                  Inna lokalizacja niż siedziba firmy
-                </Text>
-                <Text style={styles.helperText}>
-                  Np. inny lokal, kuchnia produkcyjna lub oddział.
-                </Text>
-              </View>
-            </TouchableOpacity>
-
-            {useDifferentLocation && (
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Podaj miejsce wykonywania pracy</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Miasto, ulica, numer lokalu"
-                  placeholderTextColor="#9CA3AF"
-                  value={customLocation}
-                  onChangeText={setCustomLocation}
-                  accessibilityLabel="Pole edycji alternatywnej lokalizacji"
-                />
-              </View>
-            )}
           </View>
 
           {/* 3. Warunki zatrudnienia */}
