@@ -1,12 +1,9 @@
-import { JobOffer } from '@/src/services/mPraca/candidate/data/MockData';
-import { fetchJobs } from '@/src/services/api';
+import { JobOffer, mockJobOffers } from '@/src/services/mPraca/candidate/data/MockData';
+import { fetchJobs, API_BASE_URL } from '@/src/services/api';
 import { Briefcase, Search, SlidersHorizontal } from 'lucide-react-native';
-import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, FlatList, LayoutAnimation, Platform, StyleSheet, Text, TextInput, TouchableOpacity, UIManager, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { FlatList, LayoutAnimation, Platform, StyleSheet, Text, TextInput, TouchableOpacity, UIManager, View } from 'react-native';
 import { useRouter } from 'expo-router';
-
-import CVRequirementModal from '@/src/services/mPraca/candidate/components/CVRequirementModal';
-import { validateJobCVRequirement } from '@/src/services/mPraca/candidate/api/jobRequirementsApi';
 
 // Enable LayoutAnimation for Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -128,7 +125,14 @@ export default function JobSearchScreen() {
   }, [router, selectedJobForApplication]);
 
   const renderOfferCard = ({ item }: { item: JobOffer }) => (
-    <View style={styles.card}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => router.push({
+        pathname: '/mPraca/candidate/job-details/[id]',
+        params: { id: item.id }
+      })}
+      activeOpacity={0.7}
+    >
       <View style={styles.cardHeader}>
         <Text style={styles.categoryBadge}>{item.category.toUpperCase()}</Text>
         <Text style={styles.salary}>{item.salaryRange}</Text>
@@ -139,23 +143,11 @@ export default function JobSearchScreen() {
         <Text style={styles.companyNameText}>{item.company}</Text>
       </View>
       <Text style={styles.description} numberOfLines={2}>{item.description}</Text>
-      
-      {/* CV Requirement Badge (mockData doesn't have it yet, but will be shown when available) */}
-      {/* In real implementation, would show: <Text style={styles.cvRequiredBadge}>📄 CV Required</Text> */}
-      
-      <TouchableOpacity 
-        style={styles.applyButton}
-        onPress={() => handleApplyPress(item)}
-        disabled={checkingCvRequirement}
-        activeOpacity={0.8}
-        accessibilityRole="button"
-        accessibilityLabel={`Aplikuj na ${item.title}`}
-      >
-        <Text style={styles.applyButtonText}>
-          {checkingCvRequirement ? 'Sprawdzanie...' : 'Aplikuj jednym kliknięciem'}
-        </Text>
-      </TouchableOpacity>
-    </View>
+
+      <View style={styles.detailsButton}>
+        <Text style={styles.detailsButtonText}>Pokaż szczegóły</Text>
+      </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -171,8 +163,8 @@ export default function JobSearchScreen() {
             onChangeText={setSearchQuery}
           />
         </View>
-        <TouchableOpacity 
-          style={[styles.filterButton, filtersExpanded && styles.filterButtonActive]} 
+        <TouchableOpacity
+          style={[styles.filterButton, filtersExpanded && styles.filterButtonActive]}
           onPress={toggleFilters}
           accessibilityRole="button"
           accessibilityLabel="Filtruj wyniki"
@@ -186,8 +178,8 @@ export default function JobSearchScreen() {
           <Text style={styles.filterSectionTitle}>Termin aplikowania</Text>
           <View style={styles.chipsRow}>
             {['Dowolny', 'Do 3 dni', 'Do tygodnia'].map(term => (
-              <TouchableOpacity 
-                key={term} 
+              <TouchableOpacity
+                key={term}
                 style={[styles.chip, selectedTerm === term && styles.chipActive]}
                 onPress={() => setSelectedTerm(term)}
               >
@@ -201,8 +193,8 @@ export default function JobSearchScreen() {
             {['Tylko bez KRK', 'Wymaga Sanepidu', 'Prawo Jazdy'].map(tag => {
               const isActive = selectedTags.includes(tag);
               return (
-                <TouchableOpacity 
-                  key={tag} 
+                <TouchableOpacity
+                  key={tag}
                   style={[styles.chip, isActive && styles.chipActive]}
                   onPress={() => toggleTag(tag)}
                 >
@@ -241,14 +233,14 @@ export default function JobSearchScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: MO_BG },
-  
+
   searchContainer: { flexDirection: 'row', padding: 16, backgroundColor: MO_WHITE, borderBottomWidth: 1, borderBottomColor: MO_BORDER, gap: 12 },
   searchInputWrapper: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#F3F4F6', borderRadius: 12, paddingHorizontal: 12 },
   searchIcon: { marginRight: 8 },
   searchInput: { flex: 1, height: 48, fontSize: 16, color: MO_TEXT_PRIMARY },
   filterButton: { width: 48, height: 48, borderRadius: 12, borderWidth: 1, borderColor: MO_BLUE, alignItems: 'center', justifyContent: 'center', backgroundColor: MO_WHITE },
   filterButtonActive: { backgroundColor: MO_BLUE },
-  
+
   filtersPanel: { padding: 16, backgroundColor: MO_WHITE, borderBottomWidth: 1, borderBottomColor: MO_BORDER },
   filterSectionTitle: { fontSize: 14, fontWeight: '700', color: MO_TEXT_PRIMARY, marginBottom: 12, marginTop: 4 },
   chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
@@ -256,7 +248,7 @@ const styles = StyleSheet.create({
   chipActive: { borderColor: MO_BLUE, backgroundColor: '#EFF6FF' },
   chipText: { fontSize: 14, color: MO_TEXT_SECONDARY, fontWeight: '500' },
   chipTextActive: { color: MO_BLUE, fontWeight: '600' },
-  
+
   listContent: { padding: 16, paddingBottom: 40 },
   card: { backgroundColor: MO_WHITE, borderRadius: 16, padding: 20, marginBottom: 16, borderWidth: 1, borderColor: MO_BORDER, ...Platform.select({ ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 6 }, android: { elevation: 2 } }) },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
@@ -265,7 +257,18 @@ const styles = StyleSheet.create({
   jobTitle: { fontSize: 20, fontWeight: '800', color: MO_TEXT_PRIMARY, marginBottom: 6 },
   companyNameRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
   companyNameText: { fontSize: 14, fontWeight: '500', color: MO_TEXT_SECONDARY },
-  description: { fontSize: 15, color: '#4B5563', lineHeight: 22, marginBottom: 20 },
-  applyButton: { backgroundColor: MO_BLUE, paddingVertical: 14, borderRadius: 10, alignItems: 'center' },
-  applyButtonText: { color: MO_WHITE, fontSize: 15, fontWeight: '700' },
+  description: { fontSize: 15, color: '#4B5563', lineHeight: 22, marginBottom: 16 },
+  detailsButton: {
+    borderWidth: 1,
+    borderColor: MO_BLUE,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+    backgroundColor: MO_WHITE,
+  },
+  detailsButtonText: {
+    color: MO_BLUE,
+    fontSize: 14,
+    fontWeight: '700',
+  },
 });
