@@ -1,7 +1,7 @@
 import React, { useCallback, useState, useEffect } from 'react';
 import { Alert, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator, Modal } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Briefcase, MapPin, Building2, Banknote, Calendar, ShieldCheck } from 'lucide-react-native';
+import { Briefcase, MapPin, Building2, Banknote, Calendar, ShieldCheck, GraduationCap, Languages, Award, ListChecks, Heart, Clock, Globe } from 'lucide-react-native';
 import { JobOffer } from '@/src/services/mPraca/candidate/data/MockData';
 import { fetchJob, applyForJob, checkHasApplied } from '@/src/services/api';
 import CVRequirementModal from '@/src/services/mPraca/candidate/components/CVRequirementModal';
@@ -156,34 +156,125 @@ export default function JobDetailsScreen() {
 
           <View style={styles.divider} />
 
+          {job.responsibilities && job.responsibilities.length > 0 && (
+            <View style={styles.descriptionSection}>
+              <Text style={styles.sectionTitle}>Twoje obowiązki</Text>
+              {job.responsibilities.map((resp, idx) => (
+                <View key={idx} style={styles.listItem}>
+                  <Text style={styles.listDot}>•</Text>
+                  <Text style={styles.descriptionText}>{resp}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+
           <View style={styles.descriptionSection}>
             <Text style={styles.sectionTitle}>Opis stanowiska</Text>
             <Text style={styles.descriptionText}>{job.description}</Text>
           </View>
 
+          {job.expectations && (
+            <View style={styles.descriptionSection}>
+              <Text style={styles.sectionTitle}>Nasze oczekiwania</Text>
+              <Text style={styles.descriptionText}>{job.expectations}</Text>
+            </View>
+          )}
+
+          {job.benefits && job.benefits.length > 0 && (
+            <View style={styles.descriptionSection}>
+              <Text style={styles.sectionTitle}>To oferujemy</Text>
+              {job.benefits.map((benefit, idx) => (
+                <View key={idx} style={styles.listItem}>
+                  <Heart size={16} color="#E11D48" style={{ marginRight: 8, marginTop: 4 }} />
+                  <Text style={styles.descriptionText}>{benefit}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+
           <View style={styles.detailsList}>
-              <View style={styles.detailItem}>
-                  <Calendar size={18} color={MO_TEXT_SECONDARY} />
-                  <View style={styles.detailItemContent}>
-                      <Text style={styles.detailLabel}>Termin aplikowania</Text>
-                      <Text style={styles.detailValue}>Do 15 kwietnia 2024</Text>
-                  </View>
-              </View>
+              {job.applicationDeadline && (
+                <View style={styles.detailItem}>
+                    <Calendar size={18} color={MO_TEXT_SECONDARY} />
+                    <View style={styles.detailItemContent}>
+                        <Text style={styles.detailLabel}>Termin aplikowania</Text>
+                        <Text style={styles.detailValue}>{job.applicationDeadline}</Text>
+                    </View>
+                </View>
+              )}
               <View style={styles.detailItem}>
                   <MapPin size={18} color={MO_TEXT_SECONDARY} />
                   <View style={styles.detailItemContent}>
                       <Text style={styles.detailLabel}>Lokalizacja</Text>
-                      <Text style={styles.detailValue}>Warszawa, Mazowieckie</Text>
+                      <Text style={styles.detailValue}>{job.location || 'Warszawa, Mazowieckie'}</Text>
                   </View>
               </View>
               <View style={styles.detailItem}>
                   <Briefcase size={18} color={MO_TEXT_SECONDARY} />
                   <View style={styles.detailItemContent}>
                       <Text style={styles.detailLabel}>Rodzaj umowy</Text>
-                      <Text style={styles.detailValue}>Umowa o pracę</Text>
+                      <Text style={styles.detailValue}>{job.employmentType || 'Umowa o pracę'}</Text>
                   </View>
               </View>
+              {job.workTime && (
+                <View style={styles.detailItem}>
+                    <Clock size={18} color={MO_TEXT_SECONDARY} />
+                    <View style={styles.detailItemContent}>
+                        <Text style={styles.detailLabel}>Wymiar etatu</Text>
+                        <Text style={styles.detailValue}>{job.workTime}</Text>
+                    </View>
+                </View>
+              )}
+              {job.workMode && (
+                <View style={styles.detailItem}>
+                    <Globe size={18} color={MO_TEXT_SECONDARY} />
+                    <View style={styles.detailItemContent}>
+                        <Text style={styles.detailLabel}>Tryb pracy</Text>
+                        <Text style={styles.detailValue}>{job.workMode}</Text>
+                    </View>
+                </View>
+              )}
+              {job.positionLevel && (
+                <View style={styles.detailItem}>
+                    <Award size={18} color={MO_TEXT_SECONDARY} />
+                    <View style={styles.detailItemContent}>
+                        <Text style={styles.detailLabel}>Poziom stanowiska</Text>
+                        <Text style={styles.detailValue}>{job.positionLevel}</Text>
+                    </View>
+                </View>
+              )}
+              {job.minEducation && (
+                <View style={styles.detailItem}>
+                    <GraduationCap size={18} color={MO_TEXT_SECONDARY} />
+                    <View style={styles.detailItemContent}>
+                        <Text style={styles.detailLabel}>Wykształcenie</Text>
+                        <Text style={styles.detailValue}>{job.minEducation}</Text>
+                    </View>
+                </View>
+              )}
+              {job.languages && job.languages.length > 0 && (
+                <View style={styles.detailItem}>
+                    <Languages size={18} color={MO_TEXT_SECONDARY} />
+                    <View style={styles.detailItemContent}>
+                        <Text style={styles.detailLabel}>Języki</Text>
+                        <Text style={styles.detailValue}>{job.languages.join(', ')}</Text>
+                    </View>
+                </View>
+              )}
           </View>
+
+          {job.tags && job.tags.length > 0 && (
+            <View style={[styles.badgesSection, { marginTop: 24 }]}>
+              <Text style={styles.sectionTitle}>Tagi:</Text>
+              <View style={styles.badgesContainer}>
+                {job.tags.map((tag) => (
+                  <View key={tag} style={[styles.badge, { backgroundColor: '#F3F4F6', borderColor: '#E5E7EB' }]}>
+                    <Text style={[styles.badgeText, { color: MO_TEXT_SECONDARY }]}>#{tag}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
         </View>
       </ScrollView>
 
@@ -291,6 +382,8 @@ const styles = StyleSheet.create({
   divider: { height: 1, backgroundColor: MO_BORDER, marginVertical: 20 },
   descriptionSection: { marginBottom: 24 },
   descriptionText: { fontSize: 16, color: '#4B5563', lineHeight: 24 },
+  listItem: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 8 },
+  listDot: { fontSize: 16, color: '#4B5563', marginRight: 8, marginTop: -2 },
   detailsList: { gap: 16 },
   detailItem: { flexDirection: 'row', alignItems: 'flex-start' },
   detailItemContent: { marginLeft: 12 },

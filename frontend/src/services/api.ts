@@ -31,47 +31,28 @@ export const fetchJob = async (id: string) => {
   }
 };
 
-export const applyForJob = async (jobId: string, candidateId: string, employerId?: string) => {
+export const fetchJobApplicants = async (employerId: string, jobId: string) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/candidate/apply`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        jobId,
-        candidateId,
-        employer_id: employerId,
-      }),
-    });
-    
+    const response = await fetch(`${API_BASE_URL}/employers/applications/${employerId}/job/${jobId}`);
     if (!response.ok) {
-      const errData = await response.json();
-      throw new Error(errData.error || `Error applying for job: ${response.statusText}`);
+      throw new Error(`Error fetching applicants: ${response.statusText}`);
     }
     return await response.json();
   } catch (error) {
-    console.error('applyForJob Error:', error);
-    throw error;
+    console.error('fetchJobApplicants Error:', error);
+    return { items: [], total: 0 };
   }
 };
 
-export const checkHasApplied = async (jobId: string, candidateId: string) => {
+export const fetchCandidateProfile = async (candidateId: string) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/candidate/applications?jobId=${jobId}&candidateId=${candidateId}`, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-      },
-    });
-    
+    const response = await fetch(`${API_BASE_URL}/candidates/profile/${candidateId}`);
     if (!response.ok) {
-      return false;
+      throw new Error(`Error fetching candidate profile: ${response.statusText}`);
     }
-    const data = await response.json();
-    return data.items && data.items.length > 0;
+    return await response.json();
   } catch (error) {
-    console.error('checkHasApplied Error:', error);
-    return false;
+    console.error('fetchCandidateProfile Error:', error);
+    return null;
   }
 };
