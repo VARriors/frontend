@@ -202,12 +202,26 @@ export default function QuestionnaireScreen() {
 
         // Update form with extracted data if available
         if (result.extracted_data) {
+          const currentValues = getValues();
+          const nextValues: QuestionnaireFormValues = {
+            ...currentValues,
+            email: result.extracted_data.email || currentValues.email,
+            nr_telefonu: result.extracted_data.phone || currentValues.nr_telefonu,
+          };
+
           if (result.extracted_data.email) {
             setValue('email', result.extracted_data.email, { shouldValidate: true });
           }
           if (result.extracted_data.phone) {
             setValue('nr_telefonu', result.extracted_data.phone, { shouldValidate: true });
           }
+
+          // Persist contact data extracted from CV so mock defaults are replaced
+          // even after refreshing/reloading questionnaire.
+          if (result.extracted_data.email || result.extracted_data.phone) {
+            await putUserInput(candidateId, buildUserInputPayload(nextValues));
+          }
+
           setIsCvAutoFilled(
             Boolean(
               result.extracted_data.email ||
@@ -234,7 +248,7 @@ export default function QuestionnaireScreen() {
         setIsUploadingCV(false);
       }
     },
-    [candidateId, setValue, loadQuestionnaire],
+    [candidateId, getValues, setValue, loadQuestionnaire],
   );
 
   // ── CV Delete Handler ──
@@ -260,6 +274,7 @@ export default function QuestionnaireScreen() {
         setValue('nr_telefonu', '', { shouldValidate: true, shouldDirty: true });
       }
       if (Array.isArray(extracted?.languages) && extracted.languages.length > 0) {
+        jezykiArray.replace([]);
         setValue('jezyki', [], { shouldValidate: true, shouldDirty: true });
       }
 
@@ -271,7 +286,7 @@ export default function QuestionnaireScreen() {
     } finally {
       setIsUploadingCV(false);
     }
-  }, [candidateId, cvData, setValue]);
+  }, [candidateId, cvData, jezykiArray, setValue]);
 
   // ── CV Auto-fill Handler ──
   const handleCVAutoFill = useCallback(
@@ -294,6 +309,7 @@ export default function QuestionnaireScreen() {
           };
         });
 
+        jezykiArray.replace(normalizedLanguages);
         setValue('jezyki', normalizedLanguages, { shouldValidate: true, shouldDirty: true });
       }
 
@@ -304,7 +320,7 @@ export default function QuestionnaireScreen() {
       );
       setIsCvAutoFilled(true);
     },
-    [setValue],
+    [jezykiArray, setValue],
   );
 
   // ── Submit ──
