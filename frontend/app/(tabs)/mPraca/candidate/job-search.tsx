@@ -1,7 +1,7 @@
 import { JobOffer } from '@/src/services/mPraca/candidate/data/MockData';
-import { fetchJobs, API_BASE_URL } from '@/src/services/api';
+import { fetchJobs } from '@/src/services/api';
 import { Briefcase, Search, SlidersHorizontal } from 'lucide-react-native';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, FlatList, LayoutAnimation, Platform, StyleSheet, Text, TextInput, TouchableOpacity, UIManager, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
@@ -55,6 +55,7 @@ export default function JobSearchScreen() {
     requiresCV: boolean;
     reason?: string;
   } | null>(null);
+  const [selectedJobForApplication, setSelectedJobForApplication] = useState<JobOffer | null>(null);
   const [checkingCvRequirement, setCheckingCvRequirement] = useState(false);
 
   const toggleFilters = () => {
@@ -79,6 +80,7 @@ export default function JobSearchScreen() {
 
         if (!validation.valid) {
           // Job requires CV but candidate doesn't have one
+          setSelectedJobForApplication(job);
           setCvModalData({
             jobId: job.id,
             jobTitle: job.title,
@@ -87,34 +89,43 @@ export default function JobSearchScreen() {
           });
           setCvModalVisible(true);
         } else {
-          // Candidate can apply
-          Alert.alert(
-            'Aplikacja Wysłana',
-            `Twoja aplikacja na stanowisko "${job.title}" została wysłana pomyślnie!`,
-            [{ text: 'OK' }],
-          );
-          // In real app, submit application here
+          const employerId = (job as JobOffer & { employerId?: string; employer_id?: string }).employerId
+            || (job as JobOffer & { employerId?: string; employer_id?: string }).employer_id;
+          router.push({
+            pathname: '/(tabs)/mPraca/candidate/questionnaire',
+            params: {
+              jobId: job.id,
+              employerId,
+            },
+          });
         }
       } catch (error) {
         console.error('Error checking CV requirement:', error);
-        // Proceed with application anyway if check fails
-        Alert.alert(
-          'Aplikacja Wysłana',
-          `Twoja aplikacja na stanowisko "${job.title}" została wysłana pomyślnie!`,
-          [{ text: 'OK' }],
-        );
+        Alert.alert('Błąd', 'Nie udało się zweryfikować wymagań CV. Spróbuj ponownie.', [{ text: 'OK' }]);
       } finally {
         setCheckingCvRequirement(false);
       }
     },
-    [],
+    [router],
   );
 
   const handleUploadCVFromModal = useCallback(() => {
     setCvModalVisible(false);
-    // Navigate to questionnaire with CV section
-    router.push('/mPraca/candidate/questionnaire');
-  }, [router]);
+    if (!selectedJobForApplication) {
+      router.push('/(tabs)/mPraca/candidate/questionnaire');
+      return;
+    }
+
+    router.push({
+      pathname: '/(tabs)/mPraca/candidate/questionnaire',
+      params: {
+        jobId: selectedJobForApplication.id,
+        employerId:
+          (selectedJobForApplication as JobOffer & { employerId?: string; employer_id?: string }).employerId ||
+          (selectedJobForApplication as JobOffer & { employerId?: string; employer_id?: string }).employer_id,
+      },
+    });
+  }, [router, selectedJobForApplication]);
 
   const renderOfferCard = ({ item }: { item: JobOffer }) => (
     <View style={styles.card}>
@@ -204,7 +215,7 @@ export default function JobSearchScreen() {
       )}
 
       <FlatList
-        data={mockJobOffers}
+        data={jobs}
         keyExtractor={item => item.id}
         renderItem={renderOfferCard}
         contentContainerStyle={styles.listContent}
@@ -220,6 +231,7 @@ export default function JobSearchScreen() {
         onCancel={() => {
           setCvModalVisible(false);
           setCvModalData(null);
+          setSelectedJobForApplication(null);
         }}
         loading={checkingCvRequirement}
       />

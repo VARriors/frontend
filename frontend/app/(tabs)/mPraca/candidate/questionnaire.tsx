@@ -54,6 +54,7 @@ import {
   buildMobywatelPayload,
   buildUrzadPracyPayload,
   buildUserInputPayload,
+  applyToJob,
   getCandidateContext,
   getQuestionnaire,
   mapQuestionnaireToFormValues,
@@ -64,11 +65,14 @@ import {
   getCV,
   deleteCV,
 } from '@/src/services/mPraca/candidate/api/questionnaireApi';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 
 // ═══════════════════════════════════════════════════════════════════
 // GŁÓWNY EKRAN KWESTIONARIUSZA
 // ═══════════════════════════════════════════════════════════════════
 export default function QuestionnaireScreen() {
+  const params = useLocalSearchParams<{ jobId?: string; employerId?: string }>();
+  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingZUS, setIsLoadingZUS] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
@@ -79,6 +83,7 @@ export default function QuestionnaireScreen() {
   const [cvData, setCvData] = useState<any>(null);
   const [isUploadingCV, setIsUploadingCV] = useState(false);
   const [cvUploadError, setCvUploadError] = useState<string | null>(null);
+  const [isCvAutoFilled, setIsCvAutoFilled] = useState(false);
 
   const {
     control,
@@ -127,6 +132,7 @@ export default function QuestionnaireScreen() {
         const cvInfo = await getCV(context.candidateId);
         if (active) {
           setCvData(cvInfo.cv);
+          setIsCvAutoFilled(false);
         }
       } catch (error) {
         if (!active) {
@@ -202,6 +208,13 @@ export default function QuestionnaireScreen() {
           if (result.extracted_data.phone) {
             setValue('nr_telefonu', result.extracted_data.phone, { shouldValidate: true });
           }
+          setIsCvAutoFilled(
+            Boolean(
+              result.extracted_data.email ||
+              result.extracted_data.phone ||
+              (Array.isArray(result.extracted_data.languages) && result.extracted_data.languages.length > 0),
+            ),
+          );
         }
 
         Alert.alert(
@@ -234,12 +247,21 @@ export default function QuestionnaireScreen() {
     setIsUploadingCV(true);
 
     try {
+      const extracted = cvData?.extracted_data;
       await deleteCV(candidateId);
       setCvData(null);
       setCvUploadError(null);
+      setIsCvAutoFilled(false);
 
-      // Reload questionnaire to sync
-      await loadQuestionnaire(candidateId);
+      if (extracted?.email) {
+        setValue('email', '', { shouldValidate: true, shouldDirty: true });
+      }
+      if (extracted?.phone) {
+        setValue('nr_telefonu', '', { shouldValidate: true, shouldDirty: true });
+      }
+      if (Array.isArray(extracted?.languages) && extracted.languages.length > 0) {
+        setValue('jezyki', [], { shouldValidate: true, shouldDirty: true });
+      }
 
       Alert.alert('Usunięte', 'CV zostało usunięte.', [{ text: 'OK' }]);
     } catch (error) {
@@ -249,7 +271,7 @@ export default function QuestionnaireScreen() {
     } finally {
       setIsUploadingCV(false);
     }
-  }, [candidateId, loadQuestionnaire]);
+  }, [candidateId, cvData, setValue]);
 
   // ── CV Auto-fill Handler ──
   const handleCVAutoFill = useCallback(
@@ -280,6 +302,7 @@ export default function QuestionnaireScreen() {
         'Wyekstrahowane dane zostały wstawione do formularza.',
         [{ text: 'OK' }],
       );
+      setIsCvAutoFilled(true);
     },
     [setValue],
   );
@@ -298,13 +321,38 @@ export default function QuestionnaireScreen() {
         await putMobywatel(candidateId, buildMobywatelPayload(data));
         await putUserInput(candidateId, buildUserInputPayload(data));
         await putUrzadPracy(candidateId, buildUrzadPracyPayload(data));
-        await loadQuestionnaire(candidateId);
+        const jobId = typeof params.jobId === 'string' ? params.jobId.trim() : '';
+        const employerId = typeof params.employerId === 'string' ? params.employerId.trim() : '';
 
+        let applyMessage = '';
+        if (jobId) {
+          const applyResult = await applyToJob({
+            candidateId,
+            jobId,
+            employerId: employerId || undefined,
+            selectedDocuments: [],
+          });
+
+          applyMessage = applyResult.message === 'Application already exists'
+            ? '\n\nAplikacja na tę ofertę już istniała i została zaktualizowana.'
+            : '\n\nAplikacja została zapisana i przekazana do pracodawcy.';
+        }
+
+        await loadQuestionnaire(candidateId);
         setIsSubmitting(false);
         Alert.alert(
           '✅ Kwestionariusz zapisany',
-          'Twoje dane zostały przesłane. Pola z mObywatela i ZUS są automatycznie zweryfikowane.',
-          [{ text: 'OK' }],
+          `Twoje dane zostały przesłane. Pola z mObywatela i ZUS są automatycznie zweryfikowane.${applyMessage}`,
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                if (jobId) {
+                  router.push('/(tabs)/mPraca/candidate/my-applications');
+                }
+              },
+            },
+          ],
         );
       } catch (error) {
         setIsSubmitting(false);
@@ -315,7 +363,7 @@ export default function QuestionnaireScreen() {
         Alert.alert('Błąd zapisu', message, [{ text: 'OK' }]);
       }
     },
-    [candidateId, loadQuestionnaire],
+    [candidateId, loadQuestionnaire, params.employerId, params.jobId, router],
   );
 
   // ── Preferencje (toggle chip) ──
@@ -463,17 +511,17 @@ export default function QuestionnaireScreen() {
           iconBg="#ECFDF5"
           defaultOpen={true}
         >
-          {!cvData ? (
-            <CVUpload
-              onUpload={handleCVUpload}
-              loading={isUploadingCV}
-              onUploadStart={() => setIsUploadingCV(true)}
-              onUploadError={(error) => {
-                setCvUploadError(error);
-                setIsUploadingCV(false);
-              }}
-            />
-          ) : (
+          <CVUpload
+            onUpload={handleCVUpload}
+            loading={isUploadingCV}
+            disabled={Boolean(cvData)}
+            onUploadStart={() => setIsUploadingCV(true)}
+            onUploadError={(error) => {
+              setCvUploadError(error);
+              setIsUploadingCV(false);
+            }}
+          />
+          {cvData ? (
             <CVExtractionPreview
               extractedData={cvData.extracted_data}
               extractionStatus={cvData.extraction_status}
@@ -481,8 +529,9 @@ export default function QuestionnaireScreen() {
               loading={isUploadingCV}
               onDelete={handleCVDelete}
               onAutoFill={handleCVAutoFill}
+              autoFillApplied={isCvAutoFilled}
             />
-          )}
+          ) : null}
           {cvUploadError && (
             <View style={{ marginTop: 12, backgroundColor: '#FEE2E2', borderRadius: 8, padding: 10 }}>
               <Text style={{ color: '#DC2626', fontSize: 12, fontWeight: '500' }}>

@@ -30,6 +30,7 @@ interface CVUploadProps {
   onUploadStart?: () => void;
   onUploadError?: (error: string) => void;
   loading?: boolean;
+  disabled?: boolean;
 }
 
 const CVUpload: React.FC<CVUploadProps> = ({
@@ -37,6 +38,7 @@ const CVUpload: React.FC<CVUploadProps> = ({
   onUploadStart,
   onUploadError,
   loading = false,
+  disabled = false,
 }) => {
   const [selectedFile, setSelectedFile] = useState<SelectedFile | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -101,21 +103,22 @@ const CVUpload: React.FC<CVUploadProps> = ({
   };
 
   const isLoading = loading || isUploading;
+  const isDisabled = isLoading || disabled;
 
   return (
     <View style={styles.container}>
       {!selectedFile ? (
         <TouchableOpacity
-          style={styles.uploadButton}
+          style={[styles.uploadButton, disabled && styles.uploadButtonDisabled]}
           onPress={selectFile}
-          disabled={isLoading}
+          disabled={isDisabled}
         >
-          <Upload size={32} color="#3B82F6" style={styles.uploadIcon} />
-          <Text style={styles.uploadButtonText}>
-            Select PDF CV
+          <Upload size={32} color={disabled ? '#9CA3AF' : '#3B82F6'} style={styles.uploadIcon} />
+          <Text style={[styles.uploadButtonText, disabled && styles.uploadButtonTextDisabled]}>
+            {disabled ? 'CV already attached' : 'Select PDF CV'}
           </Text>
           <Text style={styles.uploadButtonSubtext}>
-            Tap to choose a file from your device
+            {disabled ? 'Delete current CV to upload another one' : 'Tap to choose a file from your device'}
           </Text>
         </TouchableOpacity>
       ) : (
@@ -142,8 +145,9 @@ const CVUpload: React.FC<CVUploadProps> = ({
 
       {selectedFile && !isLoading && (
         <TouchableOpacity
-          style={styles.uploadSubmitButton}
+          style={[styles.uploadSubmitButton, disabled && styles.uploadSubmitButtonDisabled]}
           onPress={uploadFile}
+          disabled={disabled}
         >
           <Text style={styles.uploadSubmitButtonText}>Upload CV</Text>
         </TouchableOpacity>
@@ -175,6 +179,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0F9FF',
     gap: 8,
   },
+  uploadButtonDisabled: {
+    borderColor: '#E5E7EB',
+    backgroundColor: '#F3F4F6',
+  },
   uploadIcon: {
     marginBottom: 8,
   },
@@ -183,6 +191,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#1E40AF',
     textAlign: 'center',
+  },
+  uploadButtonTextDisabled: {
+    color: '#6B7280',
   },
   uploadButtonSubtext: {
     fontSize: 13,
@@ -222,6 +233,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     alignItems: 'center',
+  },
+  uploadSubmitButtonDisabled: {
+    backgroundColor: '#9CA3AF',
   },
   uploadSubmitButtonText: {
     fontSize: 14,
