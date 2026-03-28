@@ -1,7 +1,8 @@
-import { JobOffer, mockJobOffers } from '@/src/services/mPraca/candidate/data/MockData';
+import { JobOffer } from '@/src/services/mPraca/candidate/data/MockData';
+import { fetchJobs, API_BASE_URL } from '@/src/services/api';
 import { Briefcase, Search, SlidersHorizontal } from 'lucide-react-native';
-import React, { useState } from 'react';
-import { FlatList, LayoutAnimation, Platform, StyleSheet, Text, TextInput, TouchableOpacity, UIManager, View } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { FlatList, LayoutAnimation, Platform, StyleSheet, Text, TextInput, TouchableOpacity, UIManager, View, ActivityIndicator } from 'react-native';
 
 // Enable LayoutAnimation for Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -18,7 +19,25 @@ const MO_BG = '#F9FAFB';
 export default function JobSearchScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filtersExpanded, setFiltersExpanded] = useState(false);
-  
+  const [jobs, setJobs] = useState<JobOffer[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadJobs();
+  }, [searchQuery]);
+
+  const loadJobs = async () => {
+    setLoading(true);
+    try {
+      const results = await fetchJobs(searchQuery);
+      setJobs(results);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Przykładowe filtry
   const [selectedTerm, setSelectedTerm] = useState('Dowolny');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -112,13 +131,20 @@ export default function JobSearchScreen() {
         </View>
       )}
 
-      <FlatList
-        data={mockJobOffers}
-        keyExtractor={item => item.id}
-        renderItem={renderOfferCard}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-      />
+      {loading ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color={MO_BLUE} />
+        </View>
+      ) : (
+        <FlatList
+          data={jobs}
+          keyExtractor={item => item.id}
+          renderItem={renderOfferCard}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={<Text style={{ textAlign: 'center', marginTop: 20 }}>Brak ofert pasujących do kryteriów.</Text>}
+        />
+      )}
     </View>
   );
 }

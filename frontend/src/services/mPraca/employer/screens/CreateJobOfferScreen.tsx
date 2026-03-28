@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform, Alert, ActivityIndicator } from 'react-native';
+import { API_BASE_URL } from '@/src/services/api';
+import { router } from 'expo-router';
 
 const MO_BLUE = '#0052A5';
 const MO_WHITE = '#FFFFFF';
@@ -70,6 +72,7 @@ export default function CreateJobOfferScreen() {
   const [jobOfficeProgram, setJobOfficeProgram] = useState('');
   const [jobOfficeFunding, setJobOfficeFunding] = useState('');
   const [jobOfficeNotes, setJobOfficeNotes] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const [errors, setErrors] = useState<FormErrors>({});
 
@@ -141,38 +144,46 @@ export default function CreateJobOfferScreen() {
     return Object.keys(nextErrors).length === 0;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const isValid = validate();
     if (!isValid) {
       return;
     }
 
-    // Tutaj mockowanie zapisu do bazy mPraca
-    console.log('Zapisano ofertę:', {
-      title,
-      positionLevel,
-      workMode,
-      companyLocation,
-      useDifferentLocation,
-      customLocation,
-      contractType,
-      workTime,
-      salary,
-      minExperience,
-      minEducationLevel,
-      minEducationDetails,
-      languages,
-      extraLanguages,
-      expectations,
-      customTags,
-      selectedTags,
-      regRequirements,
-      sendToJobOffice,
-      jobOfficeProgram,
-      jobOfficeFunding,
-      jobOfficeNotes,
-    });
-    // navigation.goBack()
+    setLoading(true);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/jobs`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title,
+          company: 'Mamas in your array', 
+          location: useDifferentLocation ? customLocation : companyLocation,
+          category: '',
+          description: expectations,
+          salaryRange: salary,
+          required_skills: languages,
+          employment_type: contractType
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      await response.json();
+      Alert.alert("Sukces", "Oferta pracy została pomyślnie dodana!", [
+        { text: "OK", onPress: () => router.back() }
+      ]);
+    } catch (error) {
+      console.error('Failed to create job offer:', error);
+      Alert.alert("Błąd", "Nie udało się zapisać oferty. Sprawdź połączenie.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -753,8 +764,13 @@ export default function CreateJobOfferScreen() {
             activeOpacity={0.8}
             accessibilityRole="button"
             accessibilityLabel="Opublikuj ofertę pracy"
+            disabled={loading}
           >
-            <Text style={styles.saveButtonText}>Opublikuj za pomocą Profilu Firmy</Text>
+            {loading ? (
+              <ActivityIndicator color={MO_WHITE} />
+            ) : (
+              <Text style={styles.saveButtonText}>Opublikuj za pomocą Profilu Firmy</Text>
+            )}
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
