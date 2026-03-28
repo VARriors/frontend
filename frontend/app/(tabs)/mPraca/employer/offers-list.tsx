@@ -18,7 +18,7 @@ type EmployerJobOffer = {
   description?: string;
 };
 
-const COMPANY_NAME = 'Mamas in your array';
+const COMPANY_NAME = 'VARriors';
 
 export default function EmployerOffersListScreen() {
   const router = useRouter();
@@ -69,7 +69,7 @@ export default function EmployerOffersListScreen() {
       <ScrollView contentContainerStyle={styles.listContent}>
         <View style={styles.pageHeader}>
           <Text style={styles.pageTitleLabel}>Menedżer Aplikacji</Text>
-          <Text style={styles.pageTitle}>Twoje oferty pracy</Text>
+          <Text style={styles.pageTitle}>Nasze oferty pracy</Text>
           <Text style={styles.pageSubtitle}>
             Poniżej widzisz wszystkie ogłoszenia opublikowane dla firmy {COMPANY_NAME}.
           </Text>
