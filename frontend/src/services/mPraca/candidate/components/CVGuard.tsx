@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { View, ActivityIndicator, StyleSheet, Text } from 'react-native';
 import { useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
 export default function CVGuard() {
   const router = useRouter();
@@ -9,7 +9,8 @@ export default function CVGuard() {
   useEffect(() => {
     const checkCV = async () => {
       setIsChecking(true);
-      
+
+      // Symulacja np. pobierania z API statusu kandydata
       setTimeout(() => {
         const hasCV = false; // MOCK: wymusza false -> przekierowuje na AddCV
         setIsChecking(false);

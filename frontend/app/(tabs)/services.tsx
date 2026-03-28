@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import React from 'react';
+import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function ServicesScreen() {
   return (
@@ -10,7 +10,7 @@ export default function ServicesScreen() {
         <Text style={styles.title}>Usługi dla Obywatela</Text>
       </View>
       <ScrollView contentContainerStyle={styles.content}>
-        
+
         {/* SEKCJA MPRACA */}
         <Text style={styles.sectionTitleMain}>mPraca (NOWOŚĆ)</Text>
         <View style={styles.mPracaList}>
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
   header: { padding: 20, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' },
   title: { fontSize: 24, fontWeight: '700', color: '#1A1A1A' },
   content: { padding: 20 },
-  
+
   sectionTitleMain: { fontSize: 20, fontWeight: '800', color: '#0052A5', marginBottom: 12 },
   mPracaList: { marginBottom: 32 },
   mPracaItem: {
