@@ -66,6 +66,9 @@ export default function CandidatesListScreen() {
           hasSanepid: false,
           cleanCriminalRecord: true,
           hasDrivingLicense: false,
+          prefTypUmowy: [],
+          prefWymiarEtatu: [],
+          prefBranze: [],
           aiMatchScore: Math.floor(Math.random() * 40) + 60, // Mocked score for now
           status: item.status,
         }));
@@ -87,12 +90,18 @@ export default function CandidatesListScreen() {
   );
 
   const handleCandidatePress = (id: string, candidateId: string | undefined, currentStatus: string) => {
+    const resolvedEmployerId = typeof employerIdParam === 'string' && employerIdParam.trim()
+      ? employerIdParam.trim()
+      : resolveEmployerIdForApp(true);
+
     // Navigate to profile
     router.push({
       pathname: '/mPraca/employer/candidate-profile',
       params: {
         applicationId: id,
-        candidateId: candidateId
+        candidateId: candidateId,
+        employerId: resolvedEmployerId,
+        applicationStatus: currentStatus,
       }
     });
   };

@@ -1,4 +1,15 @@
-export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:5000/api';
+import { Platform } from 'react-native';
+
+const DEFAULT_API_HOST = Platform.OS === 'web' ? 'http://127.0.0.1:5000' : 'http://10.0.2.2:5000';
+const RAW_API_BASE_URL =
+  process.env.EXPO_PUBLIC_API_URL ||
+  process.env.EXPO_PUBLIC_API_BASE_URL ||
+  DEFAULT_API_HOST;
+const NORMALIZED_API_BASE_URL = RAW_API_BASE_URL.replace(/\/$/, '');
+
+export const API_BASE_URL = NORMALIZED_API_BASE_URL.endsWith('/api')
+  ? NORMALIZED_API_BASE_URL
+  : `${NORMALIZED_API_BASE_URL}/api`;
 const CANDIDATE_ID_STORAGE_KEY = 'mpraca_candidate_id';
 
 const persistCandidateId = (candidateId: string) => {
@@ -49,7 +60,7 @@ export type EmployerByNipResponse = {
 export type EmployerJobApplicationItem = {
   applicationId: string;
   candidateId?: string;
-  status: string;
+  status: 'SENT' | 'VIEWED' | 'ACCEPTED' | 'REJECTED' | string;
   createdAt?: string;
   updatedAt?: string;
   selectedDocuments?: string[];
@@ -131,6 +142,67 @@ export const fetchJobApplicants = async (employerId: string, jobId: string) => {
     console.error('fetchJobApplicants Error:', error);
     return { items: [], total: 0 };
   }
+};
+
+export const markEmployerApplicationViewed = async (employerId: string, applicationId: string) => {
+  const response = await fetch(
+    `${API_BASE_URL}/employers/applications/${encodeURIComponent(employerId)}/${encodeURIComponent(applicationId)}/viewed`,
+    {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        idempotency_key: `viewed-${applicationId}`,
+        note: 'Opened in employer candidate profile',
+      }),
+    },
+  );
+
+  if (!response.ok && response.status !== 409) {
+    const errorText = await response.text();
+    throw new Error(errorText || `Failed to mark viewed (${response.status})`);
+  }
+
+  if (response.status === 409) {
+    return { status: 'VIEWED', alreadyApplied: true };
+  }
+
+  return response.json();
+};
+
+export const setEmployerApplicationDecision = async (
+  employerId: string,
+  applicationId: string,
+  decision: 'ACCEPTED' | 'REJECTED',
+) => {
+  const response = await fetch(
+    `${API_BASE_URL}/employers/applications/${encodeURIComponent(employerId)}/${encodeURIComponent(applicationId)}/decision`,
+    {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        decision,
+        idempotency_key: `decision-${decision.toLowerCase()}-${applicationId}`,
+        note: decision === 'ACCEPTED'
+          ? 'Moved candidate to next stage'
+          : 'Application rejected by employer',
+      }),
+    },
+  );
+
+  if (!response.ok && response.status !== 409) {
+    const errorText = await response.text();
+    throw new Error(errorText || `Failed to set decision (${response.status})`);
+  }
+
+  if (response.status === 409) {
+    return { status: decision, alreadyApplied: true };
+  }
+
+  return response.json();
 };
 
 export const fetchEmployerByNip = async (nip: string) => {

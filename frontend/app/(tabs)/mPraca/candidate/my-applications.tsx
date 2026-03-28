@@ -1,6 +1,6 @@
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Building2, Calendar } from 'lucide-react-native';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { ActivityIndicator, FlatList, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { listCandidateApplications, type CandidateApplicationItem } from '@/src/services/mPraca/candidate/api/questionnaireApi';
 
@@ -11,7 +11,7 @@ const MO_TEXT_SECONDARY = '#6B7280';
 const MO_BORDER = '#E5E7EB';
 const MO_BG = '#F9FAFB';
 
-export type AppStatus = 'SENT' | 'VIEWED' | 'INVITED' | 'REJECTED';
+export type AppStatus = 'SENT' | 'VIEWED' | 'ACCEPTED' | 'REJECTED';
 
 export interface ApplicationItem {
   id: string;
@@ -25,7 +25,7 @@ const getStatusConfig = (status: AppStatus) => {
   switch (status) {
     case 'SENT': return { label: 'Wysłano', bg: '#F3F4F6', text: '#4B5563', border: '#D1D5DB' };
     case 'VIEWED': return { label: 'Wyświetlono', bg: '#EFF6FF', text: '#1D4ED8', border: '#BFDBFE' };
-    case 'INVITED': return { label: 'Zaproszenie', bg: '#ECFDF5', text: '#047857', border: '#A7F3D0' };
+    case 'ACCEPTED': return { label: 'Kolejny etap', bg: '#ECFDF5', text: '#047857', border: '#A7F3D0' };
     case 'REJECTED': return { label: 'Odrzucono', bg: '#FEF2F2', text: '#B91C1C', border: '#FECACA' };
   }
 };
@@ -37,7 +37,7 @@ export default function MyApplicationsScreen() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const normalizeStatus = (status: string): AppStatus => {
-    if (status === 'VIEWED' || status === 'INVITED' || status === 'REJECTED') {
+    if (status === 'VIEWED' || status === 'ACCEPTED' || status === 'REJECTED') {
       return status;
     }
     return 'SENT';
@@ -56,21 +56,21 @@ export default function MyApplicationsScreen() {
     return parsed.toLocaleDateString('pl-PL');
   };
 
-  const mapApiItemToCard = (item: CandidateApplicationItem): ApplicationItem => ({
-    id: item.applicationId,
-    jobTitle: item.job?.title || 'Stanowisko nieznane',
-    companyName: item.job?.company || 'Firma nieznana',
-    sentDate: formatDate(item.createdAt),
-    status: normalizeStatus(item.status),
-  });
-
   const loadApplications = useCallback(async () => {
     setLoading(true);
     setErrorMessage(null);
 
     try {
       const response = await listCandidateApplications();
-      setApps((response.items || []).map(mapApiItemToCard));
+      setApps(
+        (response.items || []).map((item: CandidateApplicationItem) => ({
+          id: item.applicationId,
+          jobTitle: item.job?.title || 'Stanowisko nieznane',
+          companyName: item.job?.company || 'Firma nieznana',
+          sentDate: formatDate(item.createdAt),
+          status: normalizeStatus(item.status),
+        })),
+      );
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Nie udało się pobrać aplikacji.';
       setErrorMessage(message);
