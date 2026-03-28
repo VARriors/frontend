@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform, Alert, ActivityIndicator } from 'react-native';
 import { API_BASE_URL } from '@/src/services/api';
 import { router } from 'expo-router';
+import { CheckCircle } from 'lucide-react-native';
 
 const MO_BLUE = '#0052A5';
 const MO_WHITE = '#FFFFFF';
@@ -73,6 +74,7 @@ export default function CreateJobOfferScreen() {
   const [jobOfficeFunding, setJobOfficeFunding] = useState('');
   const [jobOfficeNotes, setJobOfficeNotes] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const [errors, setErrors] = useState<FormErrors>({});
 
@@ -175,16 +177,32 @@ export default function CreateJobOfferScreen() {
       }
 
       await response.json();
-      Alert.alert("Sukces", "Oferta pracy została pomyślnie dodana!", [
-        { text: "OK", onPress: () => router.back() }
-      ]);
+      setIsSuccess(true);
+      setTimeout(() => {
+        router.back();
+      }, 2000);
     } catch (error) {
       console.error('Failed to create job offer:', error);
-      Alert.alert("Błąd", "Nie udało się zapisać oferty. Sprawdź połączenie.");
-    } finally {
+      if (Platform.OS === 'web') {
+        window.alert("Błąd: Nie udało się zapisać oferty. Sprawdź połączenie.");
+      } else {
+        Alert.alert("Błąd", "Nie udało się zapisać oferty. Sprawdź połączenie.");
+      }
       setLoading(false);
     }
   };
+
+  if (isSuccess) {
+    return (
+      <View style={styles.successOverlay}>
+        <View style={styles.successCard}>
+          <CheckCircle size={64} color="#10B981" />
+          <Text style={styles.successTitle}>Sukces!</Text>
+          <Text style={styles.successMessage}>Oferta pracy została pomyślnie dodana.</Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -999,4 +1017,38 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   saveButtonText: { color: MO_WHITE, fontSize: 16, fontWeight: '700' },
+  
+  successOverlay: {
+    flex: 1,
+    backgroundColor: MO_BG,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  successCard: {
+    backgroundColor: MO_WHITE,
+    padding: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 24,
+    elevation: 8,
+    maxWidth: 400,
+    width: '100%',
+  },
+  successTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#10B981',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  successMessage: {
+    fontSize: 16,
+    color: MO_TEXT_SECONDARY,
+    textAlign: 'center',
+    lineHeight: 24,
+  },
 });
