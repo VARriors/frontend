@@ -188,7 +188,15 @@ export default function AddCVScreen() {
                 Aby zastąpić wgrane CV, wgraj nowy plik poniżej.
               </Text>
             </>
-          ) : null}
+          ) : (
+            <View style={styles.noCvContainer}>
+              <Text style={styles.noCvTitle}>Nie masz jeszcze dodanego CV</Text>
+              <Text style={styles.noCvText}>
+                Wgraj swoje CV poniżej, aby móc aplikować na oferty
+                w usłudze mPraca.
+              </Text>
+            </View>
+          )}
         </View>
 
         <View style={styles.section}>
@@ -286,6 +294,22 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   errorSubtext: {
+    fontSize: 13,
+    color: '#64748B',
+    textAlign: 'center',
+  },
+  noCvContainer: {
+    alignItems: 'center',
+    paddingVertical: 24,
+    gap: 8,
+  },
+  noCvTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1A1A1A',
+    textAlign: 'center',
+  },
+  noCvText: {
     fontSize: 13,
     color: '#64748B',
     textAlign: 'center',

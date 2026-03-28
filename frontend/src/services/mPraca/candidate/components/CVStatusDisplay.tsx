@@ -10,8 +10,8 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   ActivityIndicator,
+  Modal,
 } from 'react-native';
 import { FileText, Trash2, Eye } from 'lucide-react-native';
 
@@ -33,6 +33,8 @@ const CVStatusDisplay: React.FC<CVStatusDisplayProps> = ({
   onView,
   loading = false,
 }) => {
+  const [isConfirmVisible, setIsConfirmVisible] = React.useState(false);
+
   if (!cvData) {
     return null;
   }
@@ -53,19 +55,26 @@ const CVStatusDisplay: React.FC<CVStatusDisplayProps> = ({
     }
   };
 
-  const handleDelete = () => {
-    Alert.alert('Usuń CV', 'Na pewno chcesz usunąć wgrane CV?', [
-      { text: 'Anuluj', onPress: () => {}, style: 'cancel' },
-      {
-        text: 'Usuń',
-        onPress: async () => {
-          if (onDelete) {
-            await onDelete();
-          }
-        },
-        style: 'destructive',
-      },
-    ]);
+  const openDeleteConfirm = () => {
+    if (loading) return;
+    setIsConfirmVisible(true);
+  };
+
+  const handleCancelDelete = () => {
+    setIsConfirmVisible(false);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!onDelete) {
+      setIsConfirmVisible(false);
+      return;
+    }
+
+    try {
+      await onDelete();
+    } finally {
+      setIsConfirmVisible(false);
+    }
   };
 
   const getStatusColor = (status?: string) => {
@@ -149,13 +158,47 @@ const CVStatusDisplay: React.FC<CVStatusDisplayProps> = ({
 
         <TouchableOpacity
           style={styles.deleteButton}
-          onPress={handleDelete}
+          onPress={openDeleteConfirm}
           disabled={loading}
         >
           <Trash2 size={18} color="#EF4444" />
           <Text style={styles.deleteButtonText}>Usuń CV</Text>
         </TouchableOpacity>
       </View>
+
+      <Modal
+        visible={isConfirmVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={handleCancelDelete}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Usuń CV</Text>
+            <Text style={styles.modalMessage}>
+              Na pewno chcesz usunąć wgrane CV? Tej operacji nie można cofnąć.
+            </Text>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={styles.modalCancelButton}
+                onPress={handleCancelDelete}
+                disabled={loading}
+              >
+                <Text style={styles.modalCancelText}>Anuluj</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.modalDeleteButton}
+                onPress={handleConfirmDelete}
+                disabled={loading}
+              >
+                <Text style={styles.modalDeleteText}>Usuń</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -250,6 +293,64 @@ const styles = StyleSheet.create({
     color: '#EF4444',
     fontSize: 14,
     fontWeight: '600',
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalContent: {
+    width: '100%',
+    maxWidth: 420,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 10 },
+    shadowRadius: 25,
+    elevation: 6,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 8,
+  },
+  modalMessage: {
+    fontSize: 14,
+    color: '#4B5563',
+    marginBottom: 20,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+  },
+  modalCancelButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 999,
+    backgroundColor: '#F3F4F6',
+  },
+  modalCancelText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  modalDeleteButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 999,
+    backgroundColor: '#DC2626',
+  },
+  modalDeleteText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });
 
