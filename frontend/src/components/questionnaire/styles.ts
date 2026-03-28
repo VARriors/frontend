@@ -1,14 +1,14 @@
-import { StyleSheet } from 'react-native';
-import { C } from './colors';
+import {StyleSheet} from 'react-native';
+import {C} from './colors';
 
 // Wspólne style używane bezpośrednio w ekranach kwestionariusza
 export const questionnaireStyles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.bg },
-  scroll: { paddingHorizontal: 16, paddingTop: 8 },
+  container: {flex: 1, backgroundColor: C.bg},
+  scroll: {paddingHorizontal: 16, paddingTop: 8},
 
   // ── Page Header ──
-  pageHeader: { paddingVertical: 20, paddingHorizontal: 4 },
-  pageHeaderIconRow: { marginBottom: 16 },
+  pageHeader: {paddingVertical: 20, paddingHorizontal: 4},
+  pageHeaderIconRow: {marginBottom: 16},
   pageHeaderIconBg: {
     width: 48,
     height: 48,
@@ -17,7 +17,7 @@ export const questionnaireStyles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: C.primary,
-    shadowOffset: { width: 0, height: 6 },
+    shadowOffset: {width: 0, height: 6},
     shadowOpacity: 0.3,
     shadowRadius: 12,
     elevation: 6,
@@ -125,8 +125,8 @@ export const questionnaireStyles = StyleSheet.create({
   },
 
   // ── Date Row ──
-  dateRow: { flexDirection: 'row', gap: 10 },
-  dateCol: { flex: 1 },
+  dateRow: {flexDirection: 'row', gap: 10},
+  dateCol: {flex: 1},
 
   // ── Level Chips (języki) ──
   levelChipRow: {
@@ -195,7 +195,7 @@ export const questionnaireStyles = StyleSheet.create({
   // ── Footer ──
   footer: {
     padding: 16,
-    paddingBottom: 24,
+    paddingBottom: 8,
     backgroundColor: C.surface,
     borderTopWidth: 1,
     borderTopColor: C.border,
@@ -209,7 +209,7 @@ export const questionnaireStyles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 12,
     shadowColor: C.primary,
-    shadowOffset: { width: 0, height: 6 },
+    shadowOffset: {width: 0, height: 6},
     shadowOpacity: 0.25,
     shadowRadius: 12,
     elevation: 6,
