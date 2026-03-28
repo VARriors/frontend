@@ -40,6 +40,7 @@ export default function EmployerLayout() {
           ),
         }}
       />
+      <Stack.Screen name="offers-list" options={{ title: 'Nasze oferty pracy' }} />
       <Stack.Screen name="create-job-offer" options={{ title: 'Dodawanie Oferty' }} />
       <Stack.Screen name="candidates-list" options={{ title: 'Aplikacje' }} />
       <Stack.Screen name="candidate-profile" options={{ title: 'Profil Kandydata' }} />
