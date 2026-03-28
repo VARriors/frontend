@@ -684,7 +684,7 @@ export default function CreateJobOfferScreen() {
 
           {/* Języki obce */}
           <View style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>11. Języki obce</Text>
+            <Text style={styles.sectionTitle}>Języki obce</Text>
             <Text style={styles.sectionSubtitle}>Zaznacz, w jakich językach kandydat powinien się komunikować.</Text>
             <View style={styles.chipRow}>
               {[...LANGUAGE_OPTIONS, ...extraLanguages].map((lang) => {
@@ -737,7 +737,7 @@ export default function CreateJobOfferScreen() {
 
           {/* Twoje oczekiwania */}
           <View style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>12. Twoje oczekiwania</Text>
+            <Text style={styles.sectionTitle}>Twoje oczekiwania</Text>
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Czego oczekujesz od kandydata?</Text>
               <TextInput
@@ -755,7 +755,7 @@ export default function CreateJobOfferScreen() {
 
           {/* Tagi charakteru pracy */}
           <View style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>13. Tagi – charakter pracy</Text>
+            <Text style={styles.sectionTitle}>Tagi – charakter pracy</Text>
             <Text style={styles.sectionSubtitle}>
               Dodaj własne tagi opisujące charakter pracy (np. praca fizyczna, MS Office, obsługa klienta).
             </Text>
@@ -810,7 +810,7 @@ export default function CreateJobOfferScreen() {
 
           {/* 14. Obowiązki i Benefity */}
           <View style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>14. Obowiązki i Benefity</Text>
+            <Text style={styles.sectionTitle}>Obowiązki i Benefity</Text>
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Główne obowiązki</Text>
@@ -877,7 +877,7 @@ export default function CreateJobOfferScreen() {
 
           {/* 15. Termin składania aplikacji */}
           <View style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>15. Termin składania aplikacji</Text>
+            <Text style={styles.sectionTitle}>Termin składania aplikacji</Text>
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Data ważności ogłoszenia</Text>
               <TextInput
@@ -893,7 +893,7 @@ export default function CreateJobOfferScreen() {
 
           {/* Programy wsparcia Urzędu Pracy */}
           <View style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>16. Programy wsparcia Urzędu Pracy</Text>
+            <Text style={styles.sectionTitle}>Programy wsparcia Urzędu Pracy</Text>
             <Text style={styles.sectionSubtitle}>
               Jeśli chcesz, możemy pomóc przygotować ofertę pod programy dofinansowania z Urzędu Pracy.
             </Text>
