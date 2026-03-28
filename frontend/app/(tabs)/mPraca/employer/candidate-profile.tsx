@@ -1,18 +1,18 @@
-import { CandidateApplication } from '@/src/services/mPraca/employer/data/EmployerMockData';
-import React, { useEffect, useMemo, useState } from 'react';
+import {CandidateApplication} from '@/src/services/mPraca/employer/data/EmployerMockData';
+import React, {useEffect, useMemo, useState} from 'react';
 import {
   ActivityIndicator,
   Alert,
   Modal,
   Platform,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {useLocalSearchParams} from 'expo-router';
 import {
   fetchCandidateProfile,
   markEmployerApplicationViewed,
@@ -38,12 +38,7 @@ const normalizeStatus = (value?: string): ApplicationStatus => {
 };
 
 export default function CandidateProfileScreen() {
-  const {
-    candidateId,
-    applicationId,
-    employerId,
-    applicationStatus,
-  } = useLocalSearchParams<{
+  const {candidateId, applicationId, employerId, applicationStatus} = useLocalSearchParams<{
     candidateId?: string;
     applicationId?: string;
     employerId?: string;
@@ -93,9 +88,13 @@ export default function CandidateProfileScreen() {
             fields.niekaralnosc?.value === true || fields.niekaralnosc?.value === 'true',
           hasDrivingLicense:
             fields.prawo_jazdy?.value === true || fields.prawo_jazdy?.value === 'true',
-          prefTypUmowy: fields.pref_typ_umowy?.value || [],
-          prefWymiarEtatu: fields.pref_wymiar_etatu?.value || [],
-          prefBranze: fields.preferencje?.value || [],
+          prefTypUmowy: Array.isArray(fields.pref_typ_umowy?.value)
+            ? fields.pref_typ_umowy.value
+            : [],
+          prefWymiarEtatu: Array.isArray(fields.pref_wymiar_etatu?.value)
+            ? fields.pref_wymiar_etatu.value
+            : [],
+          prefBranze: Array.isArray(fields.preferencje?.value) ? fields.preferencje.value : [],
           aiMatchScore: 85,
           status:
             normalizeStatus(applicationStatus) === 'SENT'
@@ -130,7 +129,7 @@ export default function CandidateProfileScreen() {
 
     markEmployerApplicationViewed(employerId, applicationId)
       .then(() => setStatus('VIEWED'))
-      .catch((error) => {
+      .catch(error => {
         console.error('Failed to mark application viewed:', error);
       });
   }, [applicationId, applicationStatus, canMutate, employerId]);
@@ -161,7 +160,7 @@ export default function CandidateProfileScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+      <SafeAreaView style={[styles.container, {justifyContent: 'center', alignItems: 'center'}]}>
         <ActivityIndicator size="large" color={MO_BLUE} />
       </SafeAreaView>
     );
@@ -169,7 +168,7 @@ export default function CandidateProfileScreen() {
 
   if (!candidate) {
     return (
-      <SafeAreaView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+      <SafeAreaView style={[styles.container, {justifyContent: 'center', alignItems: 'center'}]}>
         <Text>Nie znaleziono kandydata.</Text>
       </SafeAreaView>
     );
@@ -183,7 +182,9 @@ export default function CandidateProfileScreen() {
           <Text style={styles.title}>{candidate.title}</Text>
 
           <View style={styles.matchScore}>
-            <Text style={styles.matchScoreText}>AI Weryfikacja: {candidate.aiMatchScore}% Zgodności</Text>
+            <Text style={styles.matchScoreText}>
+              AI Weryfikacja: {candidate.aiMatchScore}% Zgodności
+            </Text>
           </View>
 
           <Text style={styles.statusText}>Status aplikacji: {status}</Text>
@@ -196,40 +197,46 @@ export default function CandidateProfileScreen() {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Preferencje zawodowe</Text>
-          <View style={{ gap: 12 }}>
+          <View style={{gap: 12}}>
             <View>
               <Text style={styles.subSectionTitle}>Branże:</Text>
               <View style={styles.chipsRow}>
-                {(candidate.prefBranze || []).map((b) => (
+                {(candidate.prefBranze || []).map(b => (
                   <View key={b} style={styles.prefChip}>
                     <Text style={styles.prefChipText}>{b}</Text>
                   </View>
                 ))}
-                {(candidate.prefBranze || []).length === 0 && <Text style={styles.noDataText}>Nie określono</Text>}
+                {(candidate.prefBranze || []).length === 0 && (
+                  <Text style={styles.noDataText}>Nie określono</Text>
+                )}
               </View>
             </View>
 
             <View>
               <Text style={styles.subSectionTitle}>Rodzaj umowy:</Text>
               <View style={styles.chipsRow}>
-                {(candidate.prefTypUmowy || []).map((t) => (
+                {(candidate.prefTypUmowy || []).map(t => (
                   <View key={t} style={styles.prefChip}>
                     <Text style={styles.prefChipText}>{t}</Text>
                   </View>
                 ))}
-                {(candidate.prefTypUmowy || []).length === 0 && <Text style={styles.noDataText}>Nie określono</Text>}
+                {(candidate.prefTypUmowy || []).length === 0 && (
+                  <Text style={styles.noDataText}>Nie określono</Text>
+                )}
               </View>
             </View>
 
             <View>
               <Text style={styles.subSectionTitle}>Wymiar etatu:</Text>
               <View style={styles.chipsRow}>
-                {(candidate.prefWymiarEtatu || []).map((w) => (
+                {(candidate.prefWymiarEtatu || []).map(w => (
                   <View key={w} style={styles.prefChip}>
                     <Text style={styles.prefChipText}>{w}</Text>
                   </View>
                 ))}
-                {(candidate.prefWymiarEtatu || []).length === 0 && <Text style={styles.noDataText}>Nie określono</Text>}
+                {(candidate.prefWymiarEtatu || []).length === 0 && (
+                  <Text style={styles.noDataText}>Nie określono</Text>
+                )}
               </View>
             </View>
           </View>
@@ -264,28 +271,33 @@ export default function CandidateProfileScreen() {
         <TouchableOpacity
           style={styles.fullCvButton}
           onPress={() => setCvModalVisible(true)}
-          activeOpacity={0.8}
-        >
+          activeOpacity={0.8}>
           <Text style={styles.fullCvButtonText}>Pokaż pełne CV</Text>
         </TouchableOpacity>
       </ScrollView>
 
       <View style={styles.bottomBar}>
         <TouchableOpacity
-          style={[styles.actionButton, styles.rejectButton, savingDecision && styles.buttonDisabled]}
+          style={[
+            styles.actionButton,
+            styles.rejectButton,
+            savingDecision && styles.buttonDisabled,
+          ]}
           onPress={() => updateDecision('REJECTED')}
           activeOpacity={0.8}
-          disabled={savingDecision}
-        >
+          disabled={savingDecision}>
           <Text style={styles.rejectButtonText}>Odrzuć</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.actionButton, styles.acceptButton, savingDecision && styles.buttonDisabled]}
+          style={[
+            styles.actionButton,
+            styles.acceptButton,
+            savingDecision && styles.buttonDisabled,
+          ]}
           onPress={() => updateDecision('ACCEPTED')}
           activeOpacity={0.8}
-          disabled={savingDecision}
-        >
+          disabled={savingDecision}>
           <Text style={styles.acceptButtonText}>Kolejny Etap</Text>
         </TouchableOpacity>
       </View>
@@ -294,8 +306,7 @@ export default function CandidateProfileScreen() {
         visible={isCvModalVisible}
         animationType="slide"
         presentationStyle="pageSheet"
-        onRequestClose={() => setCvModalVisible(false)}
-      >
+        onRequestClose={() => setCvModalVisible(false)}>
         <SafeAreaView style={styles.modalContainer}>
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Pełne CV: {candidate.name}</Text>
@@ -313,12 +324,12 @@ export default function CandidateProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: MO_BG },
-  scrollContent: { padding: 20, paddingBottom: 100 },
+  container: {flex: 1, backgroundColor: MO_BG},
+  scrollContent: {padding: 20, paddingBottom: 100},
 
-  header: { marginBottom: 32, alignItems: 'center' },
-  name: { fontSize: 28, fontWeight: '800', color: MO_TEXT_PRIMARY, marginBottom: 4 },
-  title: { fontSize: 18, color: MO_BLUE, fontWeight: '600', marginBottom: 12 },
+  header: {marginBottom: 32, alignItems: 'center'},
+  name: {fontSize: 28, fontWeight: '800', color: MO_TEXT_PRIMARY, marginBottom: 4},
+  title: {fontSize: 18, color: MO_BLUE, fontWeight: '600', marginBottom: 12},
   matchScore: {
     backgroundColor: '#FDF2F8',
     paddingHorizontal: 16,
@@ -327,8 +338,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#FBCFE8',
   },
-  matchScoreText: { color: '#BE185D', fontWeight: '700', fontSize: 13 },
-  statusText: { marginTop: 10, fontSize: 14, color: MO_TEXT_SECONDARY, fontWeight: '600' },
+  matchScoreText: {color: '#BE185D', fontWeight: '700', fontSize: 13},
+  statusText: {marginTop: 10, fontSize: 14, color: MO_TEXT_SECONDARY, fontWeight: '600'},
 
   section: {
     backgroundColor: MO_WHITE,
@@ -338,8 +349,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: MO_BORDER,
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOpacity: 0.03, shadowRadius: 8, shadowOffset: { width: 0, height: 2 } },
-      android: { elevation: 1 },
+      ios: {
+        shadowColor: '#000',
+        shadowOpacity: 0.03,
+        shadowRadius: 8,
+        shadowOffset: {width: 0, height: 2},
+      },
+      android: {elevation: 1},
     }),
   },
   sectionTitle: {
@@ -350,11 +366,11 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  subSectionTitle: { fontSize: 14, fontWeight: '600', color: MO_TEXT_SECONDARY, marginBottom: 8 },
-  summaryText: { fontSize: 15, color: MO_TEXT_SECONDARY, lineHeight: 24 },
-  noDataText: { fontSize: 13, color: MO_TEXT_SECONDARY, fontStyle: 'italic' },
+  subSectionTitle: {fontSize: 14, fontWeight: '600', color: MO_TEXT_SECONDARY, marginBottom: 8},
+  summaryText: {fontSize: 15, color: MO_TEXT_SECONDARY, lineHeight: 24},
+  noDataText: {fontSize: 13, color: MO_TEXT_SECONDARY, fontStyle: 'italic'},
 
-  chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chipsRow: {flexDirection: 'row', flexWrap: 'wrap', gap: 8},
   prefChip: {
     backgroundColor: '#EFF6FF',
     borderRadius: 8,
@@ -363,9 +379,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#DBEAFE',
   },
-  prefChipText: { color: MO_BLUE, fontSize: 13, fontWeight: '500' },
+  prefChipText: {color: MO_BLUE, fontSize: 13, fontWeight: '500'},
 
-  badgesWrapper: { flexDirection: 'column', gap: 10 },
+  badgesWrapper: {flexDirection: 'column', gap: 10},
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -374,9 +390,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
   },
-  badgeVerified: { backgroundColor: '#ECFDF5', borderColor: '#A7F3D0' },
-  badgeTextVerified: { color: '#047857', fontWeight: '600', fontSize: 15 },
-  noBadgesText: { fontSize: 14, color: MO_TEXT_SECONDARY, fontStyle: 'italic' },
+  badgeVerified: {backgroundColor: '#ECFDF5', borderColor: '#A7F3D0'},
+  badgeTextVerified: {color: '#047857', fontWeight: '600', fontSize: 15},
+  noBadgesText: {fontSize: 14, color: MO_TEXT_SECONDARY, fontStyle: 'italic'},
 
   fullCvButton: {
     backgroundColor: MO_WHITE,
@@ -387,7 +403,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 12,
   },
-  fullCvButtonText: { color: MO_BLUE, fontSize: 16, fontWeight: '700' },
+  fullCvButtonText: {color: MO_BLUE, fontSize: 16, fontWeight: '700'},
 
   bottomBar: {
     flexDirection: 'row',
@@ -410,20 +426,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  rejectButton: { backgroundColor: MO_WHITE, borderWidth: 1, borderColor: MO_RED },
-  rejectButtonText: { color: MO_RED, fontSize: 16, fontWeight: '700' },
+  rejectButton: {backgroundColor: MO_WHITE, borderWidth: 1, borderColor: MO_RED},
+  rejectButtonText: {color: MO_RED, fontSize: 16, fontWeight: '700'},
   acceptButton: {
     backgroundColor: MO_GREEN,
     shadowColor: MO_GREEN,
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.3,
     shadowRadius: 6,
     elevation: 4,
   },
-  acceptButtonText: { color: MO_WHITE, fontSize: 16, fontWeight: '700' },
-  buttonDisabled: { opacity: 0.6 },
+  acceptButtonText: {color: MO_WHITE, fontSize: 16, fontWeight: '700'},
+  buttonDisabled: {opacity: 0.6},
 
-  modalContainer: { flex: 1, backgroundColor: MO_WHITE },
+  modalContainer: {flex: 1, backgroundColor: MO_WHITE},
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -432,9 +448,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: MO_BORDER,
   },
-  modalTitle: { fontSize: 18, fontWeight: '700', color: MO_TEXT_PRIMARY },
-  closeButton: { padding: 4 },
-  closeButtonText: { fontSize: 16, color: MO_BLUE, fontWeight: '600' },
-  modalScroll: { padding: 24, paddingBottom: 60 },
-  cvText: { fontSize: 16, color: MO_TEXT_PRIMARY, lineHeight: 26 },
+  modalTitle: {fontSize: 18, fontWeight: '700', color: MO_TEXT_PRIMARY},
+  closeButton: {padding: 4},
+  closeButtonText: {fontSize: 16, color: MO_BLUE, fontWeight: '600'},
+  modalScroll: {padding: 24, paddingBottom: 60},
+  cvText: {fontSize: 16, color: MO_TEXT_PRIMARY, lineHeight: 26},
 });
