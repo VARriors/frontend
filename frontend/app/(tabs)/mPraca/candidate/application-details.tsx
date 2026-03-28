@@ -1,6 +1,19 @@
-import { Building2, CheckCircle2, Clock, Eye, MailOpen, MapPin, Send } from 'lucide-react-native';
-import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  Building2,
+  CheckCircle2,
+  Clock,
+  Eye,
+  MailOpen,
+  MapPin,
+  Send,
+} from 'lucide-react-native';
+import { useLocalSearchParams } from 'expo-router';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  getCandidateApplicationDetails,
+  type CandidateApplicationDetails,
+} from '@/src/services/mPraca/candidate/api/questionnaireApi';
 
 const MO_BLUE = '#0052A5';
 const MO_WHITE = '#FFFFFF';
@@ -16,13 +29,6 @@ interface TimelineEvent {
   title: string;
   type: 'SENT' | 'DOWNLOADED' | 'VIEWED' | 'INVITED' | 'REJECTED';
 }
-
-const mockTimeline: TimelineEvent[] = [
-  { id: '1', date: '12.05.2024', time: '10:00', title: 'Aplikacja została wysłana', type: 'SENT' },
-  { id: '2', date: '13.05.2024', time: '14:30', title: 'Pracodawca pobrał dane o niekaralności z mObywatel', type: 'DOWNLOADED' },
-  { id: '3', date: '14.05.2024', time: '09:15', title: 'Aplikacja została wyświetlona', type: 'VIEWED' },
-  { id: '4', date: '15.05.2024', time: '12:00', title: 'ZAPROSZENIE NA ROZMOWĘ', type: 'INVITED' },
-];
 
 const getEventIcon = (type: string) => {
   switch (type) {
@@ -46,28 +52,171 @@ const getEventColor = (type: string) => {
   }
 };
 
+const toTimelineType = (status?: string): TimelineEvent['type'] => {
+  if (status === 'DOWNLOADED' || status === 'VIEWED' || status === 'INVITED' || status === 'REJECTED') {
+    return status;
+  }
+  return 'SENT';
+};
+
+const formatDateParts = (value?: string) => {
+  const date = value ? new Date(value) : new Date();
+  if (Number.isNaN(date.getTime())) {
+    return {
+      date: 'Brak daty',
+      time: '--:--',
+    };
+  }
+
+  return {
+    date: date.toLocaleDateString('pl-PL'),
+    time: date.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }),
+  };
+};
+
+const getEventTitle = (status: TimelineEvent['type']) => {
+  switch (status) {
+    case 'VIEWED':
+      return 'Aplikacja została wyświetlona';
+    case 'INVITED':
+      return 'Zaproszenie do kolejnego etapu';
+    case 'REJECTED':
+      return 'Aplikacja została odrzucona';
+    case 'DOWNLOADED':
+      return 'Dokumenty kandydata zostały pobrane';
+    default:
+      return 'Aplikacja została wysłana';
+  }
+};
+
 export default function ApplicationDetailsScreen() {
+  const params = useLocalSearchParams<{ applicationId?: string }>();
+  const applicationId = typeof params.applicationId === 'string' ? params.applicationId : '';
+
+  const [application, setApplication] = useState<CandidateApplicationDetails | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadApplication = async () => {
+      if (!applicationId) {
+        setError('Brak identyfikatora aplikacji.');
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const details = await getCandidateApplicationDetails(applicationId);
+        if (!active) {
+          return;
+        }
+        setApplication(details);
+      } catch (loadError) {
+        if (!active) {
+          return;
+        }
+        setError(loadError instanceof Error ? loadError.message : 'Nie udało się pobrać szczegółów aplikacji.');
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadApplication();
+
+    return () => {
+      active = false;
+    };
+  }, [applicationId]);
+
+  const timelineEvents = useMemo<TimelineEvent[]>(() => {
+    if (!application) {
+      return [];
+    }
+
+    const created = formatDateParts(application.createdAt);
+    const baseEvent: TimelineEvent = {
+      id: 'base',
+      date: created.date,
+      time: created.time,
+      title: 'Aplikacja została wysłana',
+      type: 'SENT',
+    };
+
+    const lastStatus = application.timeline?.lastEvent?.statusCode;
+    const lastEventTime = application.timeline?.lastEvent?.eventTime;
+
+    if (!lastStatus || lastStatus === 'SENT') {
+      return [baseEvent];
+    }
+
+    const followUpParts = formatDateParts(lastEventTime);
+    return [
+      baseEvent,
+      {
+        id: 'latest',
+        date: followUpParts.date,
+        time: followUpParts.time,
+        title: getEventTitle(toTimelineType(lastStatus)),
+        type: toTimelineType(lastStatus),
+      },
+    ];
+  }, [application]);
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.centerState}>
+          <ActivityIndicator size="large" color={MO_BLUE} />
+          <Text style={styles.stateText}>Ładowanie szczegółów aplikacji...</Text>
+        </View>
+      </View>
+    );
+  }
+
+  if (error || !application) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.centerState}>
+          <Text style={styles.errorText}>{error || 'Nie znaleziono aplikacji.'}</Text>
+        </View>
+      </View>
+    );
+  }
+
+  const latestStatus = toTimelineType(application.status);
+  const locationText = application.job?.location || 'Lokalizacja niepodana';
 
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.jobSummaryCard}>
-          <Text style={styles.jobTitle}>Senior React Developer</Text>
+          <Text style={styles.jobTitle}>{application.job?.title || 'Stanowisko nieznane'}</Text>
           <View style={styles.jobDetailRow}>
             <Building2 size={16} color={MO_TEXT_SECONDARY} style={styles.detailIcon} />
-            <Text style={styles.companyName}>FinTech S.A.</Text>
+            <Text style={styles.companyName}>{application.job?.company || 'Firma nieznana'}</Text>
           </View>
           <View style={styles.jobDetailRow}>
             <MapPin size={16} color={MO_TEXT_SECONDARY} style={styles.detailIcon} />
-            <Text style={styles.detailText}>Warszawa / Hybrydowo</Text>
+            <Text style={styles.detailText}>{locationText}</Text>
+          </View>
+          <View style={styles.jobDetailRow}>
+            <Clock size={16} color={MO_TEXT_SECONDARY} style={styles.detailIcon} />
+            <Text style={styles.detailText}>Status: {getEventTitle(latestStatus)}</Text>
           </View>
         </View>
 
         <Text style={styles.sectionTitle}>Historia Aplikacji</Text>
 
         <View style={styles.timelineContainer}>
-          {mockTimeline.map((event, index) => {
-            const isLast = index === mockTimeline.length - 1;
+          {timelineEvents.map((event, index) => {
+            const isLast = index === timelineEvents.length - 1;
             
             return (
               <View key={event.id} style={styles.timelineRow}>
@@ -136,5 +285,22 @@ const styles = StyleSheet.create({
   timelineRight: { flex: 1, paddingLeft: 16, paddingBottom: 32 },
   eventCard: { backgroundColor: MO_WHITE, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: MO_BORDER },
   eventTitle: { fontSize: 15, fontWeight: '600', color: MO_TEXT_PRIMARY, lineHeight: 22 },
-  eventTitleSuccess: { color: '#047857', fontWeight: '800' }
+  eventTitleSuccess: { color: '#047857', fontWeight: '800' },
+  centerState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  stateText: {
+    marginTop: 12,
+    color: MO_TEXT_SECONDARY,
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  errorText: {
+    color: '#B91C1C',
+    fontSize: 14,
+    textAlign: 'center',
+  },
 });

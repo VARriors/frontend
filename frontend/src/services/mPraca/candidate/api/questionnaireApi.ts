@@ -44,6 +44,69 @@ type CandidateContextResponse = {
   missingFields?: string[];
 };
 
+type ApplyToJobRequest = {
+  candidateId?: string;
+  jobId: string;
+  employerId?: string;
+  selectedDocuments?: string[];
+};
+
+type ApplyToJobResponse = {
+  message: string;
+  applicationId: string;
+  candidateId: string;
+  employerId: string;
+  jobId: string;
+  status: string;
+  selectedDocuments?: string[];
+  documentsAttachedCount?: number;
+  ledger?: {
+    applicationRef?: string;
+    applicationCommitment?: string;
+    claimToken?: string;
+  };
+};
+
+export type CandidateApplicationItem = {
+  applicationId: string;
+  candidateId: string;
+  employerId: string;
+  jobId: string;
+  status: string;
+  createdAt?: string;
+  updatedAt?: string;
+  selectedDocuments?: string[];
+  job?: {
+    id?: string;
+    title?: string;
+    company?: string;
+    location?: string;
+    category?: string;
+  };
+  ledger?: {
+    applicationRef?: string;
+    applicationCommitment?: string;
+    latestStatus?: string;
+  };
+};
+
+type CandidateApplicationsResponse = {
+  candidateId: string;
+  items: CandidateApplicationItem[];
+  total: number;
+};
+
+export type CandidateApplicationDetails = CandidateApplicationItem & {
+  timeline?: {
+    eventsCount: number;
+    lastEvent?: {
+      statusCode?: string;
+      eventTime?: string;
+      actorRole?: string;
+    } | null;
+  } | null;
+};
+
 type MobywatelPayload = {
   fields: {
     imie: string;
@@ -80,15 +143,72 @@ type UrzadPracyPayload = {
 
 const API_BASE_URL = (process.env.EXPO_PUBLIC_API_BASE_URL || 'http://127.0.0.1:5000').replace(/\/$/, '');
 const CANDIDATE_ID = process.env.EXPO_PUBLIC_CANDIDATE_ID;
+const CANDIDATE_ID_STORAGE_KEY = 'mpraca_candidate_id';
+
+let runtimeCandidateId = CANDIDATE_ID || '';
+
+const readStoredCandidateId = () => {
+  if (typeof localStorage === 'undefined') {
+    return;
+  }
+
+  try {
+    const stored = localStorage.getItem(CANDIDATE_ID_STORAGE_KEY);
+    if (stored && stored.trim()) {
+      runtimeCandidateId = stored.trim();
+    }
+  } catch {
+    // Ignore storage access errors (e.g. private mode / native env).
+  }
+};
+
+const persistCandidateId = (candidateId: string) => {
+  runtimeCandidateId = candidateId;
+  if (typeof localStorage === 'undefined') {
+    return;
+  }
+
+  try {
+    localStorage.setItem(CANDIDATE_ID_STORAGE_KEY, candidateId);
+  } catch {
+    // Ignore storage access errors.
+  }
+};
+
+const seedDemoCandidate = async () => {
+  const response = await fetch(`${API_BASE_URL}/api/candidates/questionnaire/seed-demo`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify({ create_cv: false }),
+  });
+
+  if (!response.ok) {
+    throw new Error(await parseApiError(response));
+  }
+
+  const payload = (await response.json()) as { candidate_id?: string };
+  const candidateId = typeof payload.candidate_id === 'string' ? payload.candidate_id.trim() : '';
+  if (!candidateId) {
+    throw new Error('Seed candidate response missing candidate_id');
+  }
+
+  persistCandidateId(candidateId);
+  return candidateId;
+};
+
+readStoredCandidateId();
 
 const asRecord = (value: unknown): Record<string, unknown> =>
   value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
 
 const getRequiredCandidateId = () => {
-  if (!CANDIDATE_ID) {
+  if (!runtimeCandidateId) {
     throw new Error('Missing EXPO_PUBLIC_CANDIDATE_ID environment variable');
   }
-  return CANDIDATE_ID;
+  return runtimeCandidateId;
 };
 
 const parseApiError = async (response: Response) => {
@@ -262,7 +382,23 @@ export const buildUrzadPracyPayload = (data: QuestionnaireFormValues): UrzadPrac
   },
 });
 
-export const getCandidateContext = () => apiRequest<CandidateContextResponse>('/api/candidate/context', 'GET');
+export const getCandidateContext = async () => {
+  if (!runtimeCandidateId) {
+    await seedDemoCandidate();
+  }
+
+  try {
+    return await apiRequest<CandidateContextResponse>('/api/candidate/context', 'GET');
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '';
+    if (!message.includes('Candidate not found')) {
+      throw error;
+    }
+
+    await seedDemoCandidate();
+    return apiRequest<CandidateContextResponse>('/api/candidate/context', 'GET');
+  }
+};
 
 export const getQuestionnaire = (candidateId: string) =>
   apiRequest<QuestionnaireResponse>(`/api/candidates/questionnaire/${candidateId}`, 'GET');
@@ -277,6 +413,20 @@ export const putUrzadPracy = (candidateId: string, payload: UrzadPracyPayload) =
   apiRequest(`/api/candidates/questionnaire/${candidateId}/urzad-pracy`, 'PUT', payload);
 
 export const getConfiguredCandidateId = getRequiredCandidateId;
+
+export const applyToJob = (payload: ApplyToJobRequest) =>
+  apiRequest<ApplyToJobResponse>('/api/candidate/apply', 'POST', {
+    candidateId: payload.candidateId,
+    jobId: payload.jobId,
+    employerId: payload.employerId,
+    selectedDocuments: payload.selectedDocuments ?? [],
+  });
+
+export const listCandidateApplications = () =>
+  apiRequest<CandidateApplicationsResponse>('/api/candidate/applications', 'GET');
+
+export const getCandidateApplicationDetails = (applicationId: string) =>
+  apiRequest<CandidateApplicationDetails>(`/api/candidate/applications/${applicationId}`, 'GET');
 
 /**
  * Upload a CV file (PDF) to the server.

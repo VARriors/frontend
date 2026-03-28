@@ -1,7 +1,8 @@
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { Building2, Calendar } from 'lucide-react-native';
-import React, { useState } from 'react';
-import { FlatList, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, FlatList, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { listCandidateApplications, type CandidateApplicationItem } from '@/src/services/mPraca/candidate/api/questionnaireApi';
 
 const MO_BLUE = '#0052A5';
 const MO_WHITE = '#FFFFFF';
@@ -20,13 +21,6 @@ export interface ApplicationItem {
   status: AppStatus;
 }
 
-const mockApps: ApplicationItem[] = [
-  { id: '1', jobTitle: 'Senior React Developer', companyName: 'FinTech S.A.', sentDate: '12.05.2024', status: 'INVITED' },
-  { id: '2', jobTitle: 'Frontend Engineer', companyName: 'TechHouse', sentDate: '10.05.2024', status: 'VIEWED' },
-  { id: '3', jobTitle: 'Junior/Mid React Native', companyName: 'StartupX', sentDate: '09.05.2024', status: 'SENT' },
-  { id: '4', jobTitle: 'Fullstack Developer', companyName: 'Corp IT', sentDate: '01.05.2024', status: 'REJECTED' },
-];
-
 const getStatusConfig = (status: AppStatus) => {
   switch (status) {
     case 'SENT': return { label: 'Wysłano', bg: '#F3F4F6', text: '#4B5563', border: '#D1D5DB' };
@@ -38,7 +32,59 @@ const getStatusConfig = (status: AppStatus) => {
 
 export default function MyApplicationsScreen() {
   const router = useRouter();
-  const [apps] = useState(mockApps);
+  const [apps, setApps] = useState<ApplicationItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const normalizeStatus = (status: string): AppStatus => {
+    if (status === 'VIEWED' || status === 'INVITED' || status === 'REJECTED') {
+      return status;
+    }
+    return 'SENT';
+  };
+
+  const formatDate = (isoDate?: string) => {
+    if (!isoDate) {
+      return 'Brak daty';
+    }
+
+    const parsed = new Date(isoDate);
+    if (Number.isNaN(parsed.getTime())) {
+      return 'Brak daty';
+    }
+
+    return parsed.toLocaleDateString('pl-PL');
+  };
+
+  const mapApiItemToCard = (item: CandidateApplicationItem): ApplicationItem => ({
+    id: item.applicationId,
+    jobTitle: item.job?.title || 'Stanowisko nieznane',
+    companyName: item.job?.company || 'Firma nieznana',
+    sentDate: formatDate(item.createdAt),
+    status: normalizeStatus(item.status),
+  });
+
+  const loadApplications = useCallback(async () => {
+    setLoading(true);
+    setErrorMessage(null);
+
+    try {
+      const response = await listCandidateApplications();
+      setApps((response.items || []).map(mapApiItemToCard));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Nie udało się pobrać aplikacji.';
+      setErrorMessage(message);
+      setApps([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadApplications();
+    }, [loadApplications]),
+  );
 
   const handlePress = (id: string) => {
     router.push({ pathname: '/(tabs)/mPraca/candidate/application-details', params: { applicationId: id } });
@@ -78,6 +124,23 @@ export default function MyApplicationsScreen() {
 
   return (
     <View style={styles.container}>
+      {loading ? (
+        <View style={styles.centerContent}>
+          <ActivityIndicator size="large" color={MO_BLUE} />
+          <Text style={styles.helperText}>Ładowanie aplikacji...</Text>
+        </View>
+      ) : errorMessage ? (
+        <View style={styles.centerContent}>
+          <Text style={styles.errorText}>{errorMessage}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={loadApplications}>
+            <Text style={styles.retryButtonText}>Spróbuj ponownie</Text>
+          </TouchableOpacity>
+        </View>
+      ) : apps.length === 0 ? (
+        <View style={styles.centerContent}>
+          <Text style={styles.helperText}>Nie masz jeszcze żadnych aplikacji.</Text>
+        </View>
+      ) : (
       <FlatList
         data={apps}
         keyExtractor={item => item.id}
@@ -85,6 +148,7 @@ export default function MyApplicationsScreen() {
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       />
+      )}
     </View>
   );
 }
@@ -114,5 +178,34 @@ const styles = StyleSheet.create({
   infoText: { fontSize: 14, color: MO_TEXT_SECONDARY, fontWeight: '500' },
   
   badge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1, justifyContent: 'center', alignItems: 'center' },
-  badgeText: { fontSize: 12, fontWeight: '700' }
+  badgeText: { fontSize: 12, fontWeight: '700' },
+  centerContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  helperText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: MO_TEXT_SECONDARY,
+    textAlign: 'center',
+  },
+  errorText: {
+    fontSize: 14,
+    color: '#B91C1C',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  retryButton: {
+    backgroundColor: MO_BLUE,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  retryButtonText: {
+    color: MO_WHITE,
+    fontSize: 14,
+    fontWeight: '700',
+  },
 });

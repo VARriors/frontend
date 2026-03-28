@@ -40,6 +40,7 @@ interface CVExtractionPreviewProps {
   onDelete?: () => void;
   onAutoFill?: (data: ExtractedData) => void;
   loading?: boolean;
+  autoFillApplied?: boolean;
 }
 
 const CVExtractionPreview: React.FC<CVExtractionPreviewProps> = ({
@@ -49,6 +50,7 @@ const CVExtractionPreview: React.FC<CVExtractionPreviewProps> = ({
   onDelete,
   onAutoFill,
   loading = false,
+  autoFillApplied = false,
 }) => {
   const [copied, setCopied] = useState<string | null>(null);
 
@@ -199,11 +201,13 @@ const CVExtractionPreview: React.FC<CVExtractionPreviewProps> = ({
       {/* Action Buttons */}
       <View style={styles.actionButtons}>
         <TouchableOpacity
-          style={[styles.button, styles.autoFillButton]}
+          style={[styles.button, styles.autoFillButton, (loading || autoFillApplied) && styles.disabledButton]}
           onPress={handleAutoFill}
-          disabled={loading}
+          disabled={loading || autoFillApplied}
         >
-          <Text style={styles.autoFillButtonText}>✓ Auto-fill Form</Text>
+          <Text style={styles.autoFillButtonText}>
+            {autoFillApplied ? 'Auto-fill applied' : '✓ Auto-fill Form'}
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -370,6 +374,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#EF4444',
+  },
+  disabledButton: {
+    backgroundColor: '#9CA3AF',
+    borderColor: '#9CA3AF',
   },
   warningCard: {
     backgroundColor: '#FFFBEB',

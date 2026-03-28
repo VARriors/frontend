@@ -44,6 +44,17 @@ export default function JobSearchScreen() {
   const [selectedTerm, setSelectedTerm] = useState('Dowolny');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
+  // CV Requirement Modal state
+  const [cvModalVisible, setCvModalVisible] = useState(false);
+  const [cvModalData, setCvModalData] = useState<{
+    jobId: string;
+    jobTitle: string;
+    requiresCV: boolean;
+    reason?: string;
+  } | null>(null);
+  const [selectedJobForApplication, setSelectedJobForApplication] = useState<JobOffer | null>(null);
+  const [checkingCvRequirement, setCheckingCvRequirement] = useState(false);
+
   const toggleFilters = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setFiltersExpanded(!filtersExpanded);
@@ -52,6 +63,66 @@ export default function JobSearchScreen() {
   const toggleTag = (tag: string) => {
     setSelectedTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
   };
+
+  const handleApplyPress = useCallback(
+    async (job: JobOffer) => {
+      // For demo, use a mock candidate ID
+      const candidateId = 'mock-candidate-123'; // In real app, get from context
+
+      setCheckingCvRequirement(true);
+
+      try {
+        // Check if job requires CV
+        const validation = await validateJobCVRequirement(job.id, candidateId);
+
+        if (!validation.valid) {
+          // Job requires CV but candidate doesn't have one
+          setSelectedJobForApplication(job);
+          setCvModalData({
+            jobId: job.id,
+            jobTitle: job.title,
+            requiresCV: validation.requires_cv,
+            reason: validation.reason,
+          });
+          setCvModalVisible(true);
+        } else {
+          const employerId = (job as JobOffer & { employerId?: string; employer_id?: string }).employerId
+            || (job as JobOffer & { employerId?: string; employer_id?: string }).employer_id;
+          router.push({
+            pathname: '/(tabs)/mPraca/candidate/questionnaire',
+            params: {
+              jobId: job.id,
+              employerId,
+            },
+          });
+        }
+      } catch (error) {
+        console.error('Error checking CV requirement:', error);
+        Alert.alert('Błąd', 'Nie udało się zweryfikować wymagań CV. Spróbuj ponownie.', [{ text: 'OK' }]);
+      } finally {
+        setCheckingCvRequirement(false);
+      }
+    },
+    [router],
+  );
+
+  const handleUploadCVFromModal = useCallback(() => {
+    setCvModalVisible(false);
+    if (!selectedJobForApplication) {
+      router.push('/(tabs)/mPraca/candidate/questionnaire');
+      return;
+    }
+
+    router.push({
+      pathname: '/(tabs)/mPraca/candidate/questionnaire',
+      params: {
+        jobId: selectedJobForApplication.id,
+        employerId:
+          (selectedJobForApplication as JobOffer & { employerId?: string; employer_id?: string }).employerId ||
+          (selectedJobForApplication as JobOffer & { employerId?: string; employer_id?: string }).employer_id,
+      },
+    });
+  }, [router, selectedJobForApplication]);
 
   const renderOfferCard = ({ item }: { item: JobOffer }) => (
     <TouchableOpacity
@@ -136,11 +207,25 @@ export default function JobSearchScreen() {
       )}
 
       <FlatList
-        data={mockJobOffers}
+        data={jobs}
         keyExtractor={item => item.id}
         renderItem={renderOfferCard}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+      />
+
+      {/* CV Requirement Modal */}
+      <CVRequirementModal
+        visible={cvModalVisible}
+        jobTitle={cvModalData?.jobTitle || ''}
+        reason={cvModalData?.reason}
+        onUploadCV={handleUploadCVFromModal}
+        onCancel={() => {
+          setCvModalVisible(false);
+          setCvModalData(null);
+          setSelectedJobForApplication(null);
+        }}
+        loading={checkingCvRequirement}
       />
     </View>
   );
