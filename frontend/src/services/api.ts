@@ -17,3 +17,16 @@ export const fetchJobs = async (query = '') => {
     return [];
   }
 };
+
+export const fetchJob = async (id: string) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/jobs/${id}`);
+    if (!response.ok) {
+      throw new Error(`Error fetching job: ${response.statusText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('fetchJob Error:', error);
+    return null;
+  }
+};
