@@ -1,4 +1,5 @@
-import { JobOffer, mockJobOffers } from '@/src/services/mPraca/candidate/data/MockData';
+import { JobOffer } from '@/src/services/mPraca/candidate/data/MockData';
+import { fetchJobs, API_BASE_URL } from '@/src/services/api';
 import { Briefcase, Search, SlidersHorizontal } from 'lucide-react-native';
 import React, { useCallback, useState } from 'react';
 import { Alert, FlatList, LayoutAnimation, Platform, StyleSheet, Text, TextInput, TouchableOpacity, UIManager, View } from 'react-native';
@@ -23,7 +24,25 @@ export default function JobSearchScreen() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [filtersExpanded, setFiltersExpanded] = useState(false);
-  
+  const [jobs, setJobs] = useState<JobOffer[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadJobs();
+  }, [searchQuery]);
+
+  const loadJobs = async () => {
+    setLoading(true);
+    try {
+      const results = await fetchJobs(searchQuery);
+      setJobs(results);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Przykładowe filtry
   const [selectedTerm, setSelectedTerm] = useState('Dowolny');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
