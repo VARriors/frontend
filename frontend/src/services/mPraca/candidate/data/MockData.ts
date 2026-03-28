@@ -20,6 +20,8 @@ export type RequirementId = 'sanepid' | 'krk' | 'driving_license';
 
 export interface JobOffer {
   id: string;
+  employer_id?: string;
+  employerId?: string;
   title: string;
   company: string;
   salaryRange: string;
