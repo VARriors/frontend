@@ -30,3 +30,29 @@ export const fetchJob = async (id: string) => {
     return null;
   }
 };
+
+export const fetchJobApplicants = async (employerId: string, jobId: string) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/employers/applications/${employerId}/job/${jobId}`);
+    if (!response.ok) {
+      throw new Error(`Error fetching applicants: ${response.statusText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('fetchJobApplicants Error:', error);
+    return { items: [], total: 0 };
+  }
+};
+
+export const fetchCandidateProfile = async (candidateId: string) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/candidates/profile/${candidateId}`);
+    if (!response.ok) {
+      throw new Error(`Error fetching candidate profile: ${response.statusText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('fetchCandidateProfile Error:', error);
+    return null;
+  }
+};
