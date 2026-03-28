@@ -1,8 +1,9 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { Alert, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Briefcase, MapPin, Building2, Banknote, Calendar, ShieldCheck } from 'lucide-react-native';
-import { mockJobOffers, JobOffer } from '@/src/services/mPraca/candidate/data/MockData';
+import { JobOffer } from '@/src/services/mPraca/candidate/data/MockData';
+import { fetchJob } from '@/src/services/api';
 import CVRequirementModal from '@/src/services/mPraca/candidate/components/CVRequirementModal';
 import { validateJobCVRequirement } from '@/src/services/mPraca/candidate/api/jobRequirementsApi';
 
@@ -16,7 +17,17 @@ const MO_BG = '#F9FAFB';
 export default function JobDetailsScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const job = mockJobOffers.find(j => j.id === id);
+  const [job, setJob] = useState<JobOffer | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (id) {
+      fetchJob(id as string).then(data => {
+        setJob(data);
+        setLoading(false);
+      });
+    }
+  }, [id]);
 
   const [checkingCvRequirement, setCheckingCvRequirement] = useState(false);
   const [cvModalVisible, setCvModalVisible] = useState(false);
@@ -40,7 +51,7 @@ export default function JobDetailsScreen() {
             jobId: job.id,
             jobTitle: job.title,
             requiresCV: validation.requires_cv,
-            reason: validation.reason,
+            reason: validation.reason || undefined,
           });
           setCvModalVisible(true);
         } else {
@@ -69,6 +80,15 @@ export default function JobDetailsScreen() {
     router.push('/mPraca/candidate/questionnaire');
   }, [router]);
 
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color={MO_BLUE} />
+        <Text style={{ marginTop: 10 }}>Ładowanie oferty...</Text>
+      </View>
+    );
+  }
+
   if (!job) {
     return (
       <View style={styles.center}>
@@ -81,17 +101,17 @@ export default function JobDetailsScreen() {
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.card}>
-          <Text style={styles.categoryBadge}>{job.category.toUpperCase()}</Text>
-          <Text style={styles.jobTitle}>{job.title}</Text>
+          <Text style={styles.categoryBadge}>{job.category?.toUpperCase() || 'INNE'}</Text>
+          <Text style={styles.jobTitle}>{job.title || 'Brak tytułu'}</Text>
 
           <View style={styles.infoRow}>
             <Building2 size={18} color={MO_TEXT_SECONDARY} />
-            <Text style={styles.infoText}>{job.company}</Text>
+            <Text style={styles.infoText}>{job.company || 'Brak firmy'}</Text>
           </View>
 
           <View style={styles.infoRow}>
             <Banknote size={18} color="#047857" />
-            <Text style={[styles.infoText, { color: '#047857', fontWeight: '700' }]}>{job.salaryRange}</Text>
+            <Text style={[styles.infoText, { color: '#047857', fontWeight: '700' }]}>{job.salaryRange || 'Nie podano'}</Text>
           </View>
 
           {job.requiredBadges && job.requiredBadges.length > 0 && (
