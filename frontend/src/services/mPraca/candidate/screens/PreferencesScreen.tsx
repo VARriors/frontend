@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView, Alert, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { setPreferencesCompleted } from '../../data/OnboardingState';
 
@@ -28,6 +28,29 @@ export default function PreferencesScreen() {
   const navigation = useNavigation<any>();
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+
+  // Dla potrzeb hackathonu używamy stałego ID kandydata (Jan Kowalski)
+  const candidateId = "65f1a2b3c4d5e6f7a8b9c0d1";
+
+  useEffect(() => {
+    const fetchCurrentPreferences = async () => {
+      try {
+        const response = await fetch(`http://localhost:5000/api/candidates/questionnaire/${candidateId}`);
+        if (response.ok) {
+          const data = await response.json();
+          const currentPrefs = data.questionnaire?.fields?.preferencje?.value || [];
+          setSelectedCategories(currentPrefs);
+        }
+      } catch (error) {
+        console.error("Błąd podczas pobierania aktualnych preferencji:", error);
+      } finally {
+        setInitialLoading(false);
+      }
+    };
+
+    fetchCurrentPreferences();
+  }, []);
 
   const toggleCategory = (category: string) => {
     setSelectedCategories((prev) =>
@@ -40,9 +63,6 @@ export default function PreferencesScreen() {
   const handleSave = async () => {
     setLoading(true);
     try {
-      // Dla potrzeb hackathonu używamy stałego ID kandydata (Jan Kowalski)
-      const candidateId = "65f1a2b3c4d5e6f7a8b9c0d1";
-
       const response = await fetch(`http://localhost:5000/api/candidates/questionnaire/${candidateId}/user-input`, {
         method: 'PUT',
         headers: {
@@ -76,6 +96,15 @@ export default function PreferencesScreen() {
       setLoading(false);
     }
   };
+
+  if (initialLoading) {
+    return (
+      <SafeAreaView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={MO_BLUE} />
+        <Text style={{ marginTop: 16, color: MO_TEXT_SECONDARY }}>Ładowanie Twoich preferencji...</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
