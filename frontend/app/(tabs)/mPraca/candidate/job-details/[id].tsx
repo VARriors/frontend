@@ -1,9 +1,9 @@
 import React, { useCallback, useState, useEffect } from 'react';
-import { Alert, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
+import { Alert, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator, Modal } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Briefcase, MapPin, Building2, Banknote, Calendar, ShieldCheck } from 'lucide-react-native';
 import { JobOffer } from '@/src/services/mPraca/candidate/data/MockData';
-import { fetchJob } from '@/src/services/api';
+import { fetchJob, applyForJob, checkHasApplied } from '@/src/services/api';
 import CVRequirementModal from '@/src/services/mPraca/candidate/components/CVRequirementModal';
 import { validateJobCVRequirement } from '@/src/services/mPraca/candidate/api/jobRequirementsApi';
 
@@ -19,15 +19,34 @@ export default function JobDetailsScreen() {
   const router = useRouter();
   const [job, setJob] = useState<JobOffer | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hasApplied, setHasApplied] = useState(false);
+  const candidateId = '65f1a2b3c4d5e6f7a8b9c0d1';
 
   useEffect(() => {
     if (id) {
-      fetchJob(id as string).then(data => {
-        setJob(data);
+      Promise.all([
+        fetchJob(id as string),
+        checkHasApplied(id as string, candidateId)
+      ]).then(([jobData, appliedStatus]) => {
+        setJob(jobData);
+        setHasApplied(appliedStatus);
         setLoading(false);
       });
     }
   }, [id]);
+
+  const [customAlertVisible, setCustomAlertVisible] = useState(false);
+  const [customAlertConfig, setCustomAlertConfig] = useState<{
+    title: string;
+    message: string;
+    type: 'confirm' | 'success' | 'error';
+    onConfirm?: () => void;
+  }>({ title: '', message: '', type: 'success' });
+
+  const showAlert = (title: string, message: string, type: 'confirm' | 'success' | 'error', onConfirm?: () => void) => {
+    setCustomAlertConfig({ title, message, type, onConfirm });
+    setCustomAlertVisible(true);
+  };
 
   const [checkingCvRequirement, setCheckingCvRequirement] = useState(false);
   const [cvModalVisible, setCvModalVisible] = useState(false);
@@ -40,37 +59,40 @@ export default function JobDetailsScreen() {
 
   const handleApplyPress = useCallback(
     async (job: JobOffer) => {
-      const candidateId = 'mock-candidate-123';
-      setCheckingCvRequirement(true);
+      const executeApplication = async () => {
+        setCheckingCvRequirement(true);
+        try {
+          const validation = await validateJobCVRequirement(job.id, candidateId);
 
-      try {
-        const validation = await validateJobCVRequirement(job.id, candidateId);
-
-        if (!validation.valid) {
-          setCvModalData({
-            jobId: job.id,
-            jobTitle: job.title,
-            requiresCV: validation.requires_cv,
-            reason: validation.reason || undefined,
-          });
-          setCvModalVisible(true);
-        } else {
-          Alert.alert(
-            'Aplikacja Wysłana',
-            `Twoja aplikacja na stanowisko "${job.title}" została wysłana pomyślnie!`,
-            [{ text: 'OK' }],
-          );
+          if (!validation.valid) {
+            setCvModalData({
+              jobId: job.id,
+              jobTitle: job.title,
+              requiresCV: validation.requires_cv,
+              reason: validation.reason || undefined,
+            });
+            setCvModalVisible(true);
+          } else {
+            // Check requirement passed, proceed with real application
+            await applyForJob(job.id, candidateId, job.employer_id || job.employerId);
+            
+            setHasApplied(true);
+            showAlert('Aplikacja Wysłana', `Twoja aplikacja na stanowisko "${job.title}" została wysłana pomyślnie!`, 'success');
+          }
+        } catch (error: any) {
+          console.error('Error applying for job:', error);
+          showAlert('Błąd Aplikacji', error?.message || 'Nie udało się wysłać aplikacji. Spróbuj ponownie.', 'error');
+        } finally {
+          setCheckingCvRequirement(false);
         }
-      } catch (error) {
-        console.error('Error checking CV requirement:', error);
-        Alert.alert(
-          'Aplikacja Wysłana',
-          `Twoja aplikacja na stanowisko "${job.title}" została wysłana pomyślnie!`,
-          [{ text: 'OK' }],
-        );
-      } finally {
-        setCheckingCvRequirement(false);
-      }
+      };
+
+      showAlert(
+        'Potwierdzenie Aplikacji', 
+        `Czy na pewno chcesz wysłać aplikację na stanowisko "${job.title}"?`, 
+        'confirm', 
+        executeApplication
+      );
     },
     [],
   );
@@ -167,15 +189,17 @@ export default function JobDetailsScreen() {
 
       <View style={styles.footer}>
         <TouchableOpacity
-          style={styles.applyButton}
+          style={[styles.applyButton, hasApplied && { backgroundColor: '#9CA3AF' }]}
           onPress={() => handleApplyPress(job)}
-          disabled={checkingCvRequirement}
+          disabled={checkingCvRequirement || hasApplied}
           activeOpacity={0.8}
         >
           {checkingCvRequirement ? (
             <ActivityIndicator color={MO_WHITE} />
           ) : (
-            <Text style={styles.applyButtonText}>Aplikuj jednym kliknięciem</Text>
+            <Text style={styles.applyButtonText}>
+              {hasApplied ? 'Aplikacja wysłana' : 'Aplikuj jednym kliknięciem'}
+            </Text>
           )}
         </TouchableOpacity>
       </View>
@@ -191,6 +215,42 @@ export default function JobDetailsScreen() {
         }}
         loading={checkingCvRequirement}
       />
+
+      <Modal
+        visible={customAlertVisible}
+        transparent={true}
+        animationType="fade"
+      >
+        <View style={styles.alertOverlay}>
+          <View style={styles.alertBox}>
+            <Text style={styles.alertTitle}>{customAlertConfig.title}</Text>
+            <Text style={styles.alertMessage}>{customAlertConfig.message}</Text>
+            <View style={styles.alertButtons}>
+              {customAlertConfig.type === 'confirm' && (
+                <TouchableOpacity
+                  style={[styles.alertButton, styles.alertButtonCancel]}
+                  onPress={() => setCustomAlertVisible(false)}
+                >
+                  <Text style={styles.alertButtonCancelText}>Anuluj</Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
+                style={[styles.alertButton, styles.alertButtonConfirm]}
+                onPress={() => {
+                  setCustomAlertVisible(false);
+                  if (customAlertConfig.onConfirm) {
+                    customAlertConfig.onConfirm();
+                  }
+                }}
+              >
+                <Text style={styles.alertButtonConfirmText}>
+                  {customAlertConfig.type === 'confirm' ? 'Aplikuj' : 'OK'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -248,4 +308,64 @@ const styles = StyleSheet.create({
   },
   applyButton: { backgroundColor: MO_BLUE, height: 56, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   applyButtonText: { color: MO_WHITE, fontSize: 17, fontWeight: '700' },
+  alertOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  alertBox: {
+    width: '100%',
+    maxWidth: 340,
+    backgroundColor: MO_WHITE,
+    borderRadius: 16,
+    padding: 24,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 10 },
+      android: { elevation: 8 },
+    }),
+  },
+  alertTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: MO_TEXT_PRIMARY,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  alertMessage: {
+    fontSize: 16,
+    color: '#4B5563',
+    lineHeight: 24,
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  alertButtons: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  alertButton: {
+    flex: 1,
+    height: 48,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  alertButtonCancel: {
+    backgroundColor: '#F3F4F6',
+  },
+  alertButtonCancelText: {
+    color: MO_TEXT_PRIMARY,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  alertButtonConfirm: {
+    backgroundColor: MO_BLUE,
+  },
+  alertButtonConfirmText: {
+    color: MO_WHITE,
+    fontSize: 16,
+    fontWeight: '600',
+  },
 });
