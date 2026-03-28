@@ -79,7 +79,6 @@ export default function CreateJobOfferScreen() {
 
   const [errors, setErrors] = useState<FormErrors>({});
 
-<<<<<<< HEAD
   useEffect(() => {
     const storedCompany = getStoredEmployerCompany();
     const storedNip = getStoredEmployerNip();
@@ -92,10 +91,6 @@ export default function CreateJobOfferScreen() {
     }
   }, []);
 
-
-
-=======
->>>>>>> 0d872ac89637e80f9d468e3c340362b6c2bf1915
   const handleToggleLanguage = (language: string) => {
     setLanguages((prev) =>
       prev.includes(language) ? prev.filter((l) => l !== language) : [...prev, language]
@@ -202,13 +197,9 @@ export default function CreateJobOfferScreen() {
         body: JSON.stringify({
           employer_id: employerId,
           title,
-<<<<<<< HEAD
-          company: companyNameTrimmed,
-          location: companyLocation,
-=======
-          company: 'VARriors', 
+
+          company: 'VARriors',
           location: useDifferentLocation ? customLocation : companyLocation,
->>>>>>> 0d872ac89637e80f9d468e3c340362b6c2bf1915
           category: '',
           description: expectations,
           salaryRange: salary,
@@ -251,12 +242,12 @@ export default function CreateJobOfferScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView 
-        style={styles.keyboardView} 
+      <KeyboardAvoidingView
+        style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-          
+
           <Text style={styles.pageTitle}>Nowa Oferta mPraca</Text>
 
           {/* 1. Stanowisko */}
@@ -821,7 +812,7 @@ export default function CreateJobOfferScreen() {
 
         </ScrollView>
         <View style={styles.footer}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.saveButton}
             onPress={handleSave}
             activeOpacity={0.8}
@@ -846,7 +837,7 @@ const styles = StyleSheet.create({
   keyboardView: { flex: 1 },
   scrollContent: { padding: 20, paddingBottom: 60 },
   pageTitle: { fontSize: 26, fontWeight: '800', color: MO_TEXT_PRIMARY, marginBottom: 24 },
-  
+
   inputGroup: { marginBottom: 20 },
   label: { fontSize: 14, fontWeight: '600', color: MO_TEXT_PRIMARY, marginBottom: 8 },
   labelRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
@@ -948,11 +939,11 @@ const styles = StyleSheet.create({
     color: MO_TEXT_PRIMARY,
     marginBottom: 2,
   },
-  
+
   prioritiesSection: { marginTop: 16, borderTopWidth: 1, borderTopColor: '#F3F4F6', paddingTop: 24 },
   sectionTitle: { fontSize: 18, fontWeight: '700', color: MO_TEXT_PRIMARY, marginBottom: 4 },
   sectionSubtitle: { fontSize: 13, color: MO_TEXT_SECONDARY, lineHeight: 18, marginBottom: 20 },
-  
+
   priorityRow: { marginBottom: 24 },
   priorityLabel: { fontSize: 15, fontWeight: '600', color: MO_TEXT_PRIMARY, marginBottom: 12 },
   requirementItem: {
@@ -971,7 +962,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: MO_TEXT_SECONDARY,
   },
-  
+
   segmentedControl: {
     flexDirection: 'row',
     backgroundColor: '#F3F4F6',
@@ -1062,7 +1053,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   saveButtonText: { color: MO_WHITE, fontSize: 16, fontWeight: '700' },
-  
+
   successOverlay: {
     flex: 1,
     backgroundColor: MO_BG,
