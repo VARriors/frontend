@@ -157,8 +157,18 @@ export default function JobDetailsScreen() {
 
   const handleUploadCVFromModal = useCallback(() => {
     setCvModalVisible(false);
-    router.push('/mPraca/candidate/questionnaire');
-  }, [router]);
+    if (!job) {
+      router.push('/(tabs)/mPraca/candidate/questionnaire');
+      return;
+    }
+    router.push({
+      pathname: '/(tabs)/mPraca/candidate/questionnaire',
+      params: {
+        jobId: job.id,
+        employerId: job.employer_id || job.employerId,
+      },
+    });
+  }, [router, job]);
 
   if (loading) {
     return (
