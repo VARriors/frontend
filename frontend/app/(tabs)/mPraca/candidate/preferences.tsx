@@ -1,7 +1,6 @@
 import { setPreferencesCompleted } from '@/src/services/mPraca/data/OnboardingState';
-import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 // Kolory zgodne z design systemem mObywatel
 const MO_BLUE = '#0052A5';
@@ -27,20 +26,84 @@ const CATEGORIES = [
 export default function PreferencesScreen() {
   const router = useRouter();
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+
+  // Dla potrzeb hackathonu używamy stałego ID kandydata (Jan Kowalski)
+  const candidateId = "65f1a2b3c4d5e6f7a8b9c0d1";
+
+  useEffect(() => {
+    const fetchCurrentPreferences = async () => {
+      try {
+        const response = await fetch(`http://localhost:5000/api/candidates/questionnaire/${candidateId}`);
+        if (response.ok) {
+          const data = await response.json();
+          const currentPrefs = data.questionnaire?.fields?.preferencje?.value || [];
+          setSelectedCategories(currentPrefs);
+        }
+      } catch (error) {
+        console.error("Błąd podczas pobierania aktualnych preferencji:", error);
+      } finally {
+        setInitialLoading(false);
+      }
+    };
+
+    fetchCurrentPreferences();
+  }, []);
 
   const toggleCategory = (category: string) => {
-    setSelectedCategories((prev) => 
-      prev.includes(category) 
+    setSelectedCategories((prev) =>
+      prev.includes(category)
         ? prev.filter((c) => c !== category)
         : [...prev, category]
     );
   };
 
-  const handleSave = () => {
-    setPreferencesCompleted(true);
-    // Po zapisaniu wracamy na główny ekran (CandidateCenter)
-    router.replace('/(tabs)/mPraca/candidate');
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`http://localhost:5000/api/candidates/questionnaire/${candidateId}/user-input`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fields: {
+            preferencje: selectedCategories,
+          }
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Błąd podczas zapisywania preferencji');
+      }
+
+      // Użytkownik zapisuje preferencje lokalnie
+      setPreferencesCompleted(true);
+
+      // Resetujemy historię nawigacji
+      navigation.reset({
+        index: 0,
+        routes: [
+          { name: 'CandidateCenter' }
+        ],
+      });
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Błąd", "Nie udało się zapisać preferencji. Spróbuj ponownie.");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  if (initialLoading) {
+    return (
+      <SafeAreaView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={MO_BLUE} />
+        <Text style={{ marginTop: 16, color: MO_TEXT_SECONDARY }}>Ładowanie Twoich preferencji...</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -76,13 +139,16 @@ export default function PreferencesScreen() {
 
       <View style={styles.footer}>
         <TouchableOpacity
-          style={styles.saveButton}
+          style={[styles.saveButton, loading && { opacity: 0.7 }]}
           activeOpacity={0.8}
           onPress={handleSave}
+          disabled={loading}
           accessibilityRole="button"
           accessibilityLabel="Zapisz i przejdź do ofert"
         >
-          <Text style={styles.saveButtonText}>Zapisz i przejdź do ofert</Text>
+          <Text style={styles.saveButtonText}>
+            {loading ? 'Zapisywanie...' : 'Zapisz i przejdź do ofert'}
+          </Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
