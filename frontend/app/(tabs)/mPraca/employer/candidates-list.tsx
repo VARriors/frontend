@@ -64,6 +64,22 @@ export default function CandidatesListScreen() {
               status: application?.status || 'UNREAD',
             };
           });
+<!--         const mappedCandidates: CandidateApplication[] = data.items.map((item: any) => ({
+          id: item.applicationId,
+          candidateId: item.candidateId,
+          name: `${item.candidate.firstName || ''} ${item.candidate.lastName || ''}`.trim() || 'Anonimowy Kandydat',
+          title: jobTitle || 'Kandydat',
+          summary: item.candidate.email || 'Brak danych kontaktowych',
+          fullCvText: '',
+          hasSanepid: false,
+          cleanCriminalRecord: true,
+          hasDrivingLicense: false,
+          prefTypUmowy: [],
+          prefWymiarEtatu: [],
+          prefBranze: [],
+          aiMatchScore: Math.floor(Math.random() * 40) + 60, // Mocked score for now
+          status: item.status,
+        })); -->
 
           setCandidates(mappedCandidates);
         } else {

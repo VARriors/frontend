@@ -118,7 +118,7 @@ export default function AddCVScreen() {
         error instanceof Error ? error.message : 'Wgranie CV nie powiodło się';
       setFetchError(msg);
       Alert.alert('Błąd', msg);
-      console.error('Error uploading CV:', error);
+      console.error('Błąd podczas wgrywania CV`:', error);
     } finally {
       setIsUploading(false);
     }
@@ -140,7 +140,7 @@ export default function AddCVScreen() {
         error instanceof Error ? error.message : 'Usunięcie CV nie powiodło się';
       setFetchError(msg);
       Alert.alert('Błąd', msg);
-      console.error('Error deleting CV:', error);
+      console.error('Błąd podczas usuwania CV`:', error);
     } finally {
       setIsDeleting(false);
     }
