@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform, Alert, ActivityIndicator } from 'react-native';
-import { API_BASE_URL } from '@/src/services/api';
+import { API_BASE_URL, fetchEmployerByNip } from '@/src/services/api';
+import { getStoredEmployerCompany, getStoredEmployerNip, resolveEmployerIdForApp, saveEmployerSession } from '@/src/services/mPraca/employer/data/EmployerSession';
 import { router } from 'expo-router';
 import { CheckCircle } from 'lucide-react-native';
 
@@ -78,6 +79,23 @@ export default function CreateJobOfferScreen() {
 
   const [errors, setErrors] = useState<FormErrors>({});
 
+<<<<<<< HEAD
+  useEffect(() => {
+    const storedCompany = getStoredEmployerCompany();
+    const storedNip = getStoredEmployerNip();
+
+    if (storedCompany) {
+      setCompanyName(storedCompany);
+    }
+    if (storedNip) {
+      setEmployerNIP(storedNip);
+    }
+  }, []);
+
+
+
+=======
+>>>>>>> 0d872ac89637e80f9d468e3c340362b6c2bf1915
   const handleToggleLanguage = (language: string) => {
     setLanguages((prev) =>
       prev.includes(language) ? prev.filter((l) => l !== language) : [...prev, language]
@@ -155,15 +173,42 @@ export default function CreateJobOfferScreen() {
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/jobs`, {
+      const employerNipTrimmed = employerNIP.trim();
+      const companyNameTrimmed = companyName.trim();
+
+      let employerId = resolveEmployerIdForApp(true);
+      if (employerNipTrimmed) {
+        const employerFromNip = await fetchEmployerByNip(employerNipTrimmed);
+        if (employerFromNip?._id) {
+          employerId = employerFromNip._id;
+          saveEmployerSession({
+            employerId,
+            nip: employerNipTrimmed,
+            company: employerFromNip.name || employerFromNip.company || companyNameTrimmed,
+          });
+        }
+      } else {
+        saveEmployerSession({
+          employerId,
+          company: companyNameTrimmed,
+        });
+      }
+
+      const response = await fetch(`${API_BASE_URL}/employers/jobs`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          employer_id: employerId,
           title,
+<<<<<<< HEAD
+          company: companyNameTrimmed,
+          location: companyLocation,
+=======
           company: 'VARriors', 
           location: useDifferentLocation ? customLocation : companyLocation,
+>>>>>>> 0d872ac89637e80f9d468e3c340362b6c2bf1915
           category: '',
           description: expectations,
           salaryRange: salary,

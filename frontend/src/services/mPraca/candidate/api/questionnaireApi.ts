@@ -422,13 +422,25 @@ export const putUrzadPracy = (candidateId: string, payload: UrzadPracyPayload) =
 
 export const getConfiguredCandidateId = getRequiredCandidateId;
 
-export const applyToJob = (payload: ApplyToJobRequest) =>
-  apiRequest<ApplyToJobResponse>('/api/candidate/apply', 'POST', {
+export const applyToJob = async (payload: ApplyToJobRequest) => {
+  const requestPayload = {
     candidateId: payload.candidateId,
     jobId: payload.jobId,
     employerId: payload.employerId,
     selectedDocuments: payload.selectedDocuments ?? [],
-  });
+  };
+
+  try {
+    return await apiRequest<ApplyToJobResponse>('/api/candidate/applications', 'POST', requestPayload);
+  } catch (error) {
+    const message = error instanceof Error ? error.message.toLowerCase() : '';
+    if (!message.includes('404') && !message.includes('not found')) {
+      throw error;
+    }
+
+    return apiRequest<ApplyToJobResponse>('/api/candidate/apply', 'POST', requestPayload);
+  }
+};
 
 export const listCandidateApplications = () =>
   apiRequest<CandidateApplicationsResponse>('/api/candidate/applications', 'GET');
