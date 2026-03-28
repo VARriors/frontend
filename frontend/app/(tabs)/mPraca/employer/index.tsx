@@ -27,7 +27,7 @@ export default function EmployerDashboard() {
           
           <TouchableOpacity 
             style={styles.card} 
-            onPress={() => router.push('/(tabs)/mPraca/employer/candidates-list')}
+            onPress={() => router.push('/(tabs)/mPraca/employer/offers-list')}
             activeOpacity={0.8}
           >
             <Text style={styles.icon}>👥</Text>
