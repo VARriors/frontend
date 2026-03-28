@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView, Alert, ActivityIndicator } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { setPreferencesCompleted } from '../../data/OnboardingState';
+import { setPreferencesCompleted } from '@/src/services/mPraca/data/OnboardingState';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 // Kolory zgodne z design systemem mObywatel
 const MO_BLUE = '#0052A5';
@@ -25,7 +24,7 @@ const CATEGORIES = [
 ];
 
 export default function PreferencesScreen() {
-  const navigation = useNavigation<any>();
+  const router = useRouter();
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);

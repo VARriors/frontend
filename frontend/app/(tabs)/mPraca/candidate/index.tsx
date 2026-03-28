@@ -1,10 +1,8 @@
+import { useRouter } from 'expo-router';
+import { Briefcase, FileText, Search, Settings } from 'lucide-react-native';
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { MPracaStackParamList } from '../../navigation/types';
-import { Search, FileText, Settings, Briefcase } from 'lucide-react-native';
 
 const MO_BLUE = '#0052A5';
 const MO_TEXT_PRIMARY = '#1F2937';
@@ -12,10 +10,10 @@ const MO_TEXT_SECONDARY = '#6B7280';
 const MO_BORDER = '#E5E7EB';
 
 export default function CandidateCenterScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<MPracaStackParamList>>();
+  const router = useRouter();
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView contentContainerStyle={styles.content}>
         
         <View style={styles.header}>
@@ -25,10 +23,9 @@ export default function CandidateCenterScreen() {
           </Text>
         </View>
 
-        {/* PRZYCISK SZUKAJ */}
         <TouchableOpacity 
           style={styles.searchHeroButton}
-          onPress={() => navigation.navigate('JobSearch')}
+          onPress={() => router.push('/(tabs)/mPraca/candidate/job-search')}
           activeOpacity={0.8}
         >
           <View style={styles.searchIconBg}>
@@ -40,13 +37,12 @@ export default function CandidateCenterScreen() {
           </View>
         </TouchableOpacity>
 
-        {/* MÓJ PROFIL KANDYDATA */}
         <Text style={styles.sectionTitle}>Mój Profil Kandydata</Text>
         <View style={styles.listContainer}>
 
           <TouchableOpacity 
             style={styles.listItem}
-            onPress={() => navigation.navigate('CandidateFlow')}
+            onPress={() => router.push('/(tabs)/mPraca/candidate/add-cv')}
             activeOpacity={0.7}
           >
             <View style={[styles.listIconBg, { backgroundColor: '#EFF6FF' }]}>
@@ -60,7 +56,7 @@ export default function CandidateCenterScreen() {
 
           <TouchableOpacity 
             style={styles.listItem}
-            onPress={() => navigation.navigate('Preferences')}
+            onPress={() => router.push('/(tabs)/mPraca/candidate/preferences')}
             activeOpacity={0.7}
           >
             <View style={[styles.listIconBg, { backgroundColor: '#FDF4FF' }]}>
@@ -74,7 +70,7 @@ export default function CandidateCenterScreen() {
 
           <TouchableOpacity 
             style={[styles.listItem, styles.lastListItem]}
-            onPress={() => navigation.navigate('MyApplications')}
+            onPress={() => router.push('/(tabs)/mPraca/candidate/my-applications')}
             activeOpacity={0.7}
           >
             <View style={[styles.listIconBg, { backgroundColor: '#ECFDF5' }]}>
@@ -100,7 +96,6 @@ const styles = StyleSheet.create({
   title: { fontSize: 26, fontWeight: '800', color: MO_TEXT_PRIMARY, marginBottom: 8 },
   subtitle: { fontSize: 15, color: MO_TEXT_SECONDARY, lineHeight: 22 },
 
-  // GŁÓWNY PRZYCISK WYSZUKIWANIA
   searchHeroButton: {
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
@@ -131,7 +126,6 @@ const styles = StyleSheet.create({
 
   sectionTitle: { fontSize: 18, fontWeight: '700', color: MO_TEXT_PRIMARY, marginBottom: 16 },
   
-  // LISTA PROFILU
   listContainer: {
     backgroundColor: '#FFFFFF',
     borderRadius: 20,

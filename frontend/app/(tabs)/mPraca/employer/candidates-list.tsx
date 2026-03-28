@@ -1,6 +1,6 @@
+import { CandidateApplication, mockCandidates } from '@/src/services/mPraca/employer/data/EmployerMockData';
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, SectionList, Platform } from 'react-native';
-import { mockCandidates, CandidateApplication } from '../data/EmployerMockData';
+import { Platform, SafeAreaView, SectionList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const MO_BLUE = '#0052A5';
 const MO_WHITE = '#FFFFFF';

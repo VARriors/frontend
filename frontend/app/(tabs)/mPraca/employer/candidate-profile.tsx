@@ -1,6 +1,6 @@
+import { CandidateApplication, mockCandidates } from '@/src/services/mPraca/employer/data/EmployerMockData';
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Modal, Platform } from 'react-native';
-import { mockCandidates, CandidateApplication } from '../data/EmployerMockData';
+import { Modal, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const MO_GREEN = '#10B981'; // Green for Accept
 const MO_RED = '#EF4444'; // Red for Reject

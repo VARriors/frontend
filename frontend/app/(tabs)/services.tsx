@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import React from 'react';
+import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function ServicesScreen() {
   return (
@@ -14,10 +14,10 @@ export default function ServicesScreen() {
         {/* SEKCJA MPRACA */}
         <Text style={styles.sectionTitleMain}>mPraca (NOWOŚĆ)</Text>
         <View style={styles.mPracaList}>
-
-          <TouchableOpacity
-            style={styles.mPracaItem}
-            onPress={() => router.replace({ pathname: '/mPraca', params: { startRoute: 'CandidateCenter' } })}
+          
+          <TouchableOpacity 
+            style={styles.mPracaItem} 
+            onPress={() => router.push('/(tabs)/mPraca/candidate')}
             activeOpacity={0.8}
           >
             <View style={[styles.mPracaIconContainer, { backgroundColor: '#EFF6FF' }]}>
@@ -30,9 +30,9 @@ export default function ServicesScreen() {
             <Ionicons name="chevron-forward" size={24} color="#D1D5DB" />
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.mPracaItem}
-            onPress={() => router.replace({ pathname: '/mPraca', params: { startRoute: 'UrzadPracy' } })}
+          <TouchableOpacity 
+            style={styles.mPracaItem} 
+            onPress={() => router.push('/(tabs)/mPraca/bezrobotny')}
             activeOpacity={0.8}
           >
             <View style={[styles.mPracaIconContainer, { backgroundColor: '#F0FDF4' }]}>
@@ -45,9 +45,9 @@ export default function ServicesScreen() {
             <Ionicons name="chevron-forward" size={24} color="#D1D5DB" />
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.mPracaItem}
-            onPress={() => router.replace({ pathname: '/mPraca', params: { startRoute: 'EmployerDashboard' } })}
+          <TouchableOpacity 
+            style={styles.mPracaItem} 
+            onPress={() => router.push('/(tabs)/mPraca/employer')}
             activeOpacity={0.8}
           >
             <View style={[styles.mPracaIconContainer, { backgroundColor: '#F3F4F6' }]}>
