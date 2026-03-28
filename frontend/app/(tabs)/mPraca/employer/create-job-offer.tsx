@@ -162,7 +162,7 @@ export default function CreateJobOfferScreen() {
         },
         body: JSON.stringify({
           title,
-          company: 'Mamas in your array', 
+          company: 'Mamas in your buses', 
           location: useDifferentLocation ? customLocation : companyLocation,
           category: '',
           description: expectations,
