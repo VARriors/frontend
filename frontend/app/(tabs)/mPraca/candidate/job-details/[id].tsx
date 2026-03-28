@@ -1,11 +1,12 @@
 import React, { useCallback, useState, useEffect } from 'react';
-import { Alert, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator, Modal } from 'react-native';
+import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator, Modal } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Briefcase, MapPin, Building2, Banknote, Calendar, ShieldCheck, GraduationCap, Languages, Award, ListChecks, Heart, Clock, Globe } from 'lucide-react-native';
+import { Briefcase, MapPin, Building2, Banknote, Calendar, ShieldCheck, GraduationCap, Languages, Award, Heart, Clock, Globe } from 'lucide-react-native';
 import { JobOffer } from '@/src/services/mPraca/candidate/data/MockData';
 import { fetchJob, applyForJob, checkHasApplied } from '@/src/services/api';
 import CVRequirementModal from '@/src/services/mPraca/candidate/components/CVRequirementModal';
 import { validateJobCVRequirement } from '@/src/services/mPraca/candidate/api/jobRequirementsApi';
+import { getCandidateContext } from '@/src/services/mPraca/candidate/api/questionnaireApi';
 
 const MO_BLUE = '#0052A5';
 const MO_WHITE = '#FFFFFF';
@@ -20,24 +21,72 @@ export default function JobDetailsScreen() {
   const [job, setJob] = useState<JobOffer | null>(null);
   const [loading, setLoading] = useState(true);
   const [hasApplied, setHasApplied] = useState(false);
-  const candidateId = '65f1a2b3c4d5e6f7a8b9c0d1';
+  const [candidateId, setCandidateId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (id) {
+    let active = true;
+
+    const loadJobAndCandidate = async () => {
+      if (!id) {
+        return;
+      }
+
       setLoading(true);
-      Promise.all([
-        fetchJob(id as string),
-        checkHasApplied(id as string, candidateId)
-      ]).then(([jobData, appliedStatus]) => {
+
+      try {
+        const [jobData, context] = await Promise.all([
+          fetchJob(id as string),
+          getCandidateContext(),
+        ]);
+
+        if (!active) {
+          return;
+        }
+
         setJob(jobData);
+        setCandidateId(context.candidateId);
+
+        const appliedStatus = await checkHasApplied(id as string, context.candidateId);
+        if (!active) {
+          return;
+        }
         setHasApplied(appliedStatus);
-        setLoading(false);
-      }).catch(error => {
+      } catch (error) {
         console.error('Error fetching job data:', error);
-        setLoading(false);
-      });
-    }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadJobAndCandidate();
+
+    return () => {
+      active = false;
+    };
   }, [id]);
+
+  useEffect(() => {
+    if (!id || !candidateId) {
+      return;
+    }
+
+    let active = true;
+
+    const refreshApplicationStatus = async () => {
+      const appliedStatus = await checkHasApplied(id as string, candidateId);
+      if (active) {
+        setHasApplied(appliedStatus);
+      }
+    };
+
+    refreshApplicationStatus();
+
+    return () => {
+      active = false;
+    };
+  }, [id, candidateId]);
 
   const [customAlertVisible, setCustomAlertVisible] = useState(false);
   const [customAlertConfig, setCustomAlertConfig] = useState<{
@@ -63,6 +112,11 @@ export default function JobDetailsScreen() {
 
   const handleApplyPress = useCallback(
     async (job: JobOffer) => {
+      if (!candidateId) {
+        showAlert('Brak profilu', 'Nie udało się pobrać danych kandydata. Otwórz kwestionariusz i spróbuj ponownie.', 'error');
+        return;
+      }
+
       const executeApplication = async () => {
         setCheckingCvRequirement(true);
         try {
@@ -98,7 +152,7 @@ export default function JobDetailsScreen() {
         executeApplication
       );
     },
-    [],
+    [candidateId],
   );
 
   const handleUploadCVFromModal = useCallback(() => {

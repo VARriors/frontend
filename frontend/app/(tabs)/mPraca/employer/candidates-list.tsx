@@ -1,5 +1,6 @@
 import { CandidateApplication } from '@/src/services/mPraca/employer/data/EmployerMockData';
 import { fetchJobApplicants } from '@/src/services/api';
+import { resolveEmployerIdForApp } from '@/src/services/mPraca/employer/data/EmployerSession';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useMemo, useState, useEffect } from 'react';
 import { Platform, SafeAreaView, SectionList, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
@@ -39,7 +40,7 @@ const renderBadges = (item: CandidateApplication) => {
 
 export default function CandidatesListScreen() {
   const router = useRouter();
-  const { jobId, jobTitle } = useLocalSearchParams<{ jobId?: string; jobTitle?: string }>();
+  const { jobId, jobTitle, employerId: employerIdParam } = useLocalSearchParams<{ jobId?: string; jobTitle?: string; employerId?: string }>();
   const [candidates, setCandidates] = useState<CandidateApplication[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -50,7 +51,9 @@ export default function CandidatesListScreen() {
         return;
       }
       try {
-        const employerId = 'mock-employer-1';
+        const employerId = typeof employerIdParam === 'string' && employerIdParam.trim()
+          ? employerIdParam.trim()
+          : resolveEmployerIdForApp(true);
         const data = await fetchJobApplicants(employerId, jobId);
 
         const mappedCandidates: CandidateApplication[] = data.items.map((item: any) => ({
@@ -76,7 +79,7 @@ export default function CandidatesListScreen() {
     };
 
     loadApplicants();
-  }, [jobId, jobTitle]);
+  }, [jobId, jobTitle, employerIdParam]);
 
   const headerTitle = useMemo(
     () => jobTitle || 'Oferta pracy',

@@ -8,6 +8,7 @@ export interface ApplicationBadge {
 
 export interface CandidateApplication {
   id: string;
+  candidateId?: string;
   name: string;
   title: string;
   summary: string;

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform, Alert, ActivityIndicator } from 'react-native';
-import { API_BASE_URL } from '@/src/services/api';
+import { API_BASE_URL, fetchEmployerByNip } from '@/src/services/api';
+import { getStoredEmployerCompany, getStoredEmployerNip, resolveEmployerIdForApp, saveEmployerSession } from '@/src/services/mPraca/employer/data/EmployerSession';
 import { router } from 'expo-router';
 import { CheckCircle } from 'lucide-react-native';
 
@@ -78,6 +79,18 @@ export default function CreateJobOfferScreen() {
   const [isSuccess, setIsSuccess] = useState(false);
 
   const [errors, setErrors] = useState<FormErrors>({});
+
+  useEffect(() => {
+    const storedCompany = getStoredEmployerCompany();
+    const storedNip = getStoredEmployerNip();
+
+    if (storedCompany) {
+      setCompanyName(storedCompany);
+    }
+    if (storedNip) {
+      setEmployerNIP(storedNip);
+    }
+  }, []);
 
 
 
@@ -161,14 +174,36 @@ export default function CreateJobOfferScreen() {
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/jobs`, {
+      const employerNipTrimmed = employerNIP.trim();
+      const companyNameTrimmed = companyName.trim();
+
+      let employerId = resolveEmployerIdForApp(true);
+      if (employerNipTrimmed) {
+        const employerFromNip = await fetchEmployerByNip(employerNipTrimmed);
+        if (employerFromNip?._id) {
+          employerId = employerFromNip._id;
+          saveEmployerSession({
+            employerId,
+            nip: employerNipTrimmed,
+            company: employerFromNip.name || employerFromNip.company || companyNameTrimmed,
+          });
+        }
+      } else {
+        saveEmployerSession({
+          employerId,
+          company: companyNameTrimmed,
+        });
+      }
+
+      const response = await fetch(`${API_BASE_URL}/employers/jobs`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          employer_id: employerId,
           title,
-          company: companyName,
+          company: companyNameTrimmed,
           location: companyLocation,
           category: '',
           description: description,

@@ -1,4 +1,5 @@
-import { API_BASE_URL } from '@/src/services/api';
+import { fetchEmployerOffersWithApplications } from '@/src/services/api';
+import { getStoredEmployerCompany, resolveEmployerIdForApp } from '@/src/services/mPraca/employer/data/EmployerSession';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -16,33 +17,41 @@ type EmployerJobOffer = {
   company: string;
   location?: string;
   description?: string;
+  applicationsCount: number;
 };
-
-const COMPANY_NAME = 'Mamas in your array';
 
 export default function EmployerOffersListScreen() {
   const router = useRouter();
   const [offers, setOffers] = useState<EmployerJobOffer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [companyName, setCompanyName] = useState<string>('Twoja firma');
 
   const loadOffers = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const url = `${API_BASE_URL}/jobs?company=${encodeURIComponent(COMPANY_NAME)}`;
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`Request failed (${response.status})`);
+      const employerId = resolveEmployerIdForApp(true);
+      const payload = await fetchEmployerOffersWithApplications(employerId, true);
+
+      const storedCompanyName = getStoredEmployerCompany();
+      if (storedCompanyName) {
+        setCompanyName(storedCompanyName);
       }
 
-      const payload = await response.json();
-      const items: EmployerJobOffer[] = Array.isArray(payload)
-        ? payload
-        : Array.isArray(payload?.items)
-        ? payload.items
-        : [];
+      const items: EmployerJobOffer[] = (payload.items || []).map((item) => ({
+        id: item.id,
+        title: item.title,
+        company: item.company || storedCompanyName || 'Twoja firma',
+        location: item.location,
+        description: undefined,
+        applicationsCount: item.applicationsCount || 0,
+      }));
+
+      if (!storedCompanyName && items.length > 0 && items[0].company) {
+        setCompanyName(items[0].company);
+      }
 
       setOffers(items);
     } catch (e) {
@@ -58,9 +67,10 @@ export default function EmployerOffersListScreen() {
   }, []);
 
   const openCandidatesForOffer = (offer: EmployerJobOffer) => {
+    const employerId = resolveEmployerIdForApp(true);
     router.push({
       pathname: '/(tabs)/mPraca/employer/candidates-list',
-      params: { jobId: offer.id, jobTitle: offer.title },
+      params: { jobId: offer.id, jobTitle: offer.title, employerId },
     });
   };
 
@@ -71,7 +81,7 @@ export default function EmployerOffersListScreen() {
           <Text style={styles.pageTitleLabel}>Menedżer Aplikacji</Text>
           <Text style={styles.pageTitle}>Twoje oferty pracy</Text>
           <Text style={styles.pageSubtitle}>
-            Poniżej widzisz wszystkie ogłoszenia opublikowane dla firmy {COMPANY_NAME}.
+            Poniżej widzisz wszystkie ogłoszenia opublikowane dla firmy {companyName}.
           </Text>
         </View>
 
@@ -114,6 +124,9 @@ export default function EmployerOffersListScreen() {
             {offer.location ? (
               <Text style={styles.offerMeta}>{offer.location}</Text>
             ) : null}
+            <Text style={styles.applicationsCount}>
+              Aplikacje: {offer.applicationsCount}
+            </Text>
             {offer.description ? (
               <Text style={styles.offerDescription} numberOfLines={2}>
                 {offer.description}
@@ -164,5 +177,6 @@ const styles = StyleSheet.create({
   offerTitle: { fontSize: 16, fontWeight: '700', color: MO_TEXT_PRIMARY },
   offerCompany: { fontSize: 13, fontWeight: '600', color: MO_BLUE, marginTop: 2 },
   offerMeta: { fontSize: 13, color: MO_TEXT_SECONDARY, marginBottom: 4 },
+  applicationsCount: { fontSize: 13, color: MO_BLUE, fontWeight: '700', marginBottom: 6 },
   offerDescription: { fontSize: 14, color: MO_TEXT_SECONDARY, lineHeight: 20 },
 });
