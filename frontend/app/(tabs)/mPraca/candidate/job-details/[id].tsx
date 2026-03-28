@@ -24,12 +24,16 @@ export default function JobDetailsScreen() {
 
   useEffect(() => {
     if (id) {
+      setLoading(true);
       Promise.all([
         fetchJob(id as string),
         checkHasApplied(id as string, candidateId)
       ]).then(([jobData, appliedStatus]) => {
         setJob(jobData);
         setHasApplied(appliedStatus);
+        setLoading(false);
+      }).catch(error => {
+        console.error('Error fetching job data:', error);
         setLoading(false);
       });
     }
@@ -75,7 +79,7 @@ export default function JobDetailsScreen() {
           } else {
             // Check requirement passed, proceed with real application
             await applyForJob(job.id, candidateId, job.employer_id || job.employerId);
-            
+
             setHasApplied(true);
             showAlert('Aplikacja Wysłana', `Twoja aplikacja na stanowisko "${job.title}" została wysłana pomyślnie!`, 'success');
           }
@@ -88,9 +92,9 @@ export default function JobDetailsScreen() {
       };
 
       showAlert(
-        'Potwierdzenie Aplikacji', 
-        `Czy na pewno chcesz wysłać aplikację na stanowisko "${job.title}"?`, 
-        'confirm', 
+        'Potwierdzenie Aplikacji',
+        `Czy na pewno chcesz wysłać aplikację na stanowisko "${job.title}"?`,
+        'confirm',
         executeApplication
       );
     },

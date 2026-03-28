@@ -56,3 +56,49 @@ export const fetchCandidateProfile = async (candidateId: string) => {
     return null;
   }
 };
+
+export const applyForJob = async (jobId: string, candidateId: string, employerId?: string) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/candidate/apply`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Candidate-Id': candidateId,
+      },
+      body: JSON.stringify({
+        jobId,
+        candidateId,
+        employerId,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Application failed: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('applyForJob Error:', error);
+    throw error;
+  }
+};
+
+export const checkHasApplied = async (jobId: string, candidateId: string) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/candidate/applications/check?jobId=${jobId}&candidateId=${candidateId}`, {
+      headers: {
+        'X-Candidate-Id': candidateId,
+      },
+    });
+
+    if (!response.ok) {
+      return false;
+    }
+
+    const data = await response.json();
+    return data.applied || false;
+  } catch (error) {
+    console.error('checkHasApplied Error:', error);
+    return false;
+  }
+};

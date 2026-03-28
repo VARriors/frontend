@@ -159,9 +159,14 @@ export default function JobSearchScreen() {
             <Briefcase size={14} color={MO_TEXT_SECONDARY} style={{marginRight: 4}} />
             <Text style={styles.companyNameText}>{item.company}</Text>
           </View>
-          <Text style={styles.salary}>{item.salaryRange} PLN</Text>
+          <View style={styles.cardFooter}>
+            <Text style={styles.salary}>{item.salaryRange} PLN</Text>
+            <View style={styles.detailsLink}>
+              <Text style={styles.detailsText}>Zobacz szczegóły</Text>
+              <ChevronRight size={18} color={MO_BLUE} />
+            </View>
+          </View>
         </View>
-        <ChevronRight size={24} color={MO_TEXT_SECONDARY} />
       </View>
     </TouchableOpacity>
   );
@@ -329,4 +334,20 @@ const styles = StyleSheet.create({
   companyNameRow: {flexDirection: 'row', alignItems: 'center', marginBottom: 8},
   companyNameText: {fontSize: 14, fontWeight: '500', color: MO_TEXT_SECONDARY},
   salary: {fontSize: 14, fontWeight: '700', color: '#047857'},
+  cardFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 8,
+  },
+  detailsLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  detailsText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: MO_BLUE,
+  },
 });
