@@ -34,7 +34,6 @@ const EDUCATION_LEVELS: EducationLevel[] = ['Podstawowe', 'Średnie', 'Zawodowe'
 
 type FormErrors = {
   title?: string;
-  companyName?: string;
   workMode?: string;
   companyLocation?: string;
   contractType?: string;
@@ -44,12 +43,13 @@ type FormErrors = {
 
 export default function CreateJobOfferScreen() {
   const [title, setTitle] = useState('');
-  const [companyName, setCompanyName] = useState('');
   const [positionLevel, setPositionLevel] = useState<PositionLevel>('Junior');
 
   const [workMode, setWorkMode] = useState<WorkMode | null>(null);
-  const [employerNIP, setEmployerNIP] = useState('');
-  const [companyLocation, setCompanyLocation] = useState('');
+  const [companyLocation] = useState('Siedziba firmy na podstawie NIP');
+  const [useDifferentLocation, setUseDifferentLocation] = useState(false);
+  const [customLocation, setCustomLocation] = useState('');
+
   const [contractType, setContractType] = useState<ContractType | null>(null);
   const [workTime, setWorkTime] = useState<WorkTime | null>(null);
   const [salary, setSalary] = useState('');
@@ -61,7 +61,6 @@ export default function CreateJobOfferScreen() {
   const [languages, setLanguages] = useState<string[]>([]);
   const [extraLanguages, setExtraLanguages] = useState<string[]>([]);
   const [newLanguageName, setNewLanguageName] = useState('');
-  const [description, setDescription] = useState('');
   const [expectations, setExpectations] = useState('');
   const [customTags, setCustomTags] = useState<string[]>([]);
   const [newTagName, setNewTagName] = useState('');
@@ -80,6 +79,7 @@ export default function CreateJobOfferScreen() {
 
   const [errors, setErrors] = useState<FormErrors>({});
 
+<<<<<<< HEAD
   useEffect(() => {
     const storedCompany = getStoredEmployerCompany();
     const storedNip = getStoredEmployerNip();
@@ -94,6 +94,8 @@ export default function CreateJobOfferScreen() {
 
 
 
+=======
+>>>>>>> 0d872ac89637e80f9d468e3c340362b6c2bf1915
   const handleToggleLanguage = (language: string) => {
     setLanguages((prev) =>
       prev.includes(language) ? prev.filter((l) => l !== language) : [...prev, language]
@@ -141,9 +143,6 @@ export default function CreateJobOfferScreen() {
 
     if (!title.trim()) {
       nextErrors.title = 'Stanowisko jest wymagane.';
-    }
-    if (!companyName.trim()) {
-      nextErrors.companyName = 'Nazwa firmy jest wymagana.';
     }
     if (!workMode) {
       nextErrors.workMode = 'Wybierz tryb pracy.';
@@ -203,21 +202,18 @@ export default function CreateJobOfferScreen() {
         body: JSON.stringify({
           employer_id: employerId,
           title,
+<<<<<<< HEAD
           company: companyNameTrimmed,
           location: companyLocation,
+=======
+          company: 'VARriors', 
+          location: useDifferentLocation ? customLocation : companyLocation,
+>>>>>>> 0d872ac89637e80f9d468e3c340362b6c2bf1915
           category: '',
-          description: description,
+          description: expectations,
           salaryRange: salary,
           required_skills: languages,
-          employment_type: contractType,
-          work_time: workTime,
-          work_mode: workMode,
-          position_level: positionLevel,
-          min_experience: minExperience,
-          min_education: minEducationLevel,
-          languages: [...languages, ...extraLanguages],
-          expectations: expectations,
-          tags: selectedTags,
+          employment_type: contractType
         }),
       });
 
@@ -255,17 +251,17 @@ export default function CreateJobOfferScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        style={styles.keyboardView}
+      <KeyboardAvoidingView 
+        style={styles.keyboardView} 
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-
+          
           <Text style={styles.pageTitle}>Nowa Oferta mPraca</Text>
 
           {/* 1. Stanowisko */}
           <View style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>1. Stanowisko</Text>
+            <Text style={styles.sectionTitle}>Stanowisko</Text>
             <View style={styles.inputGroup}>
               <View style={styles.labelRow}>
                 <Text style={styles.label}>Stanowisko</Text>
@@ -285,39 +281,6 @@ export default function CreateJobOfferScreen() {
                 accessibilityLabel="Pole edycji nazwy stanowiska"
               />
               {errors.title && <Text style={styles.errorText}>{errors.title}</Text>}
-            </View>
-
-            <View style={styles.inputGroup}>
-              <View style={styles.labelRow}>
-                <Text style={styles.label}>Nazwa firmy</Text>
-                <Text style={styles.requiredMark}>*</Text>
-              </View>
-              <TextInput
-                style={[styles.input, errors.companyName && styles.inputError]}
-                placeholder="np. ABC Corporation"
-                placeholderTextColor="#9CA3AF"
-                value={companyName}
-                onChangeText={(text) => {
-                  setCompanyName(text);
-                  if (errors.companyName) {
-                    setErrors((prev) => ({ ...prev, companyName: undefined }));
-                  }
-                }}
-                accessibilityLabel="Pole edycji nazwy firmy"
-              />
-              {errors.companyName && <Text style={styles.errorText}>{errors.companyName}</Text>}
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>NIP firmy (opcjonalnie)</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="np. 1234567890"
-                placeholderTextColor="#9CA3AF"
-                value={employerNIP}
-                onChangeText={setEmployerNIP}
-                accessibilityLabel="Pole edycji NIP firmy"
-              />
             </View>
 
             <Text style={styles.label}>Poziom stanowiska</Text>
@@ -351,7 +314,7 @@ export default function CreateJobOfferScreen() {
 
           {/* 2. Organizacja pracy */}
           <View style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>2. Organizacja pracy</Text>
+            <Text style={styles.sectionTitle}>Organizacja pracy</Text>
 
             <View style={styles.inputGroup}>
               <View style={styles.labelRow}>
@@ -394,29 +357,62 @@ export default function CreateJobOfferScreen() {
 
             <View style={styles.inputGroup}>
               <View style={styles.labelRow}>
-                <Text style={styles.label}>Lokalizacja pracy</Text>
+                <Text style={styles.label}>Lokalizacja (pobierana z NIP)</Text>
                 <Text style={styles.requiredMark}>*</Text>
               </View>
               <TextInput
-                style={[styles.input, errors.companyLocation && styles.inputError]}
-                placeholder="np. Warszawa, ul. Marszałkowska 10"
-                placeholderTextColor="#9CA3AF"
+                style={[styles.input, styles.disabledInput, errors.companyLocation && styles.inputError]}
                 value={companyLocation}
-                onChangeText={(text) => {
-                  setCompanyLocation(text);
-                  if (errors.companyLocation) {
-                    setErrors((prev) => ({ ...prev, companyLocation: undefined }));
-                  }
-                }}
-                accessibilityLabel="Pole edycji lokalizacji pracy"
+                editable={false}
+                placeholderTextColor="#9CA3AF"
+                accessibilityLabel="Lokalizacja siedziby firmy na podstawie NIP"
               />
+              <Text style={styles.helperText}>
+                Dane adresowe pobieramy automatycznie po NIP firmy.
+              </Text>
               {errors.companyLocation && <Text style={styles.errorText}>{errors.companyLocation}</Text>}
             </View>
+
+            <TouchableOpacity
+              style={styles.checkboxRow}
+              onPress={() => setUseDifferentLocation((prev) => !prev)}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: useDifferentLocation }}
+            >
+              <View
+                style={[
+                  styles.checkboxBox,
+                  useDifferentLocation && styles.checkboxBoxChecked,
+                ]}
+              />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.checkboxLabel}>
+                  Inna lokalizacja niż siedziba firmy
+                </Text>
+                <Text style={styles.helperText}>
+                  Np. inny lokal, kuchnia produkcyjna lub oddział.
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            {useDifferentLocation && (
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Podaj miejsce wykonywania pracy</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Miasto, ulica, numer lokalu"
+                  placeholderTextColor="#9CA3AF"
+                  value={customLocation}
+                  onChangeText={setCustomLocation}
+                  accessibilityLabel="Pole edycji alternatywnej lokalizacji"
+                />
+              </View>
+            )}
           </View>
 
           {/* 3. Warunki zatrudnienia */}
           <View style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>3. Warunki zatrudnienia</Text>
+            <Text style={styles.sectionTitle}> Warunki zatrudnienia</Text>
 
             <View style={styles.inputGroup}>
               <View style={styles.labelRow}>
@@ -520,7 +516,7 @@ export default function CreateJobOfferScreen() {
 
           {/* 4. Wymagane doświadczenie i wykształcenie */}
           <View style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>4. Wymagania wstępne</Text>
+            <Text style={styles.sectionTitle}>Wymagania wstępne</Text>
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Minimalne doświadczenie w zawodzie</Text>
               <TextInput
@@ -578,7 +574,7 @@ export default function CreateJobOfferScreen() {
 
           {/* 10. Uprawnienia i certyfikaty państwowe (AI Match) */}
           <View style={styles.prioritiesSection}>
-            <Text style={styles.sectionTitle}>10. Uprawnienia i certyfikaty państwowe (AI Match)</Text>
+            <Text style={styles.sectionTitle}>Uprawnienia i certyfikaty państwowe (AI Match)</Text>
             <Text style={styles.sectionSubtitle}>
               Dodaj konkretne uprawnienia lub certyfikaty, które są wymagane (np. SEP, UDT, licencje zawodowe).
             </Text>
@@ -678,32 +674,14 @@ export default function CreateJobOfferScreen() {
             </View>
           </View>
 
-          {/* 12. Opis stanowiska */}
+          {/* Twoje oczekiwania */}
           <View style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>12. Opis stanowiska</Text>
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Napisz krótko, na czym polega praca</Text>
-              <TextInput
-                style={[styles.input, styles.textArea]}
-                placeholder="np. Przygotowywanie dań kuchni polskiej, obsługa gości restauracji..."
-                placeholderTextColor="#9CA3AF"
-                value={description}
-                onChangeText={setDescription}
-                multiline
-                textAlignVertical="top"
-                accessibilityLabel="Pole edycji opisu stanowiska"
-              />
-            </View>
-          </View>
-
-          {/* 13. Twoje oczekiwania */}
-          <View style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>13. Twoje oczekiwania</Text>
+            <Text style={styles.sectionTitle}>12. Twoje oczekiwania</Text>
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Czego oczekujesz od kandydata?</Text>
               <TextInput
                 style={[styles.input, styles.textArea]}
-                placeholder="np. dyspozycyjność w weekendy, dokładność, punktualność."
+                placeholder="Napisz w prostych słowach, czego oczekujesz (np. dyspozycyjność w weekendy, dokładność, punktualność)."
                 placeholderTextColor="#9CA3AF"
                 value={expectations}
                 onChangeText={setExpectations}
@@ -716,7 +694,7 @@ export default function CreateJobOfferScreen() {
 
           {/* Tagi charakteru pracy */}
           <View style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>14. Tagi – charakter pracy</Text>
+            <Text style={styles.sectionTitle}>13. Tagi – charakter pracy</Text>
             <Text style={styles.sectionSubtitle}>
               Dodaj własne tagi opisujące charakter pracy (np. praca fizyczna, MS Office, obsługa klienta).
             </Text>
@@ -843,7 +821,7 @@ export default function CreateJobOfferScreen() {
 
         </ScrollView>
         <View style={styles.footer}>
-          <TouchableOpacity
+          <TouchableOpacity 
             style={styles.saveButton}
             onPress={handleSave}
             activeOpacity={0.8}
@@ -868,7 +846,7 @@ const styles = StyleSheet.create({
   keyboardView: { flex: 1 },
   scrollContent: { padding: 20, paddingBottom: 60 },
   pageTitle: { fontSize: 26, fontWeight: '800', color: MO_TEXT_PRIMARY, marginBottom: 24 },
-
+  
   inputGroup: { marginBottom: 20 },
   label: { fontSize: 14, fontWeight: '600', color: MO_TEXT_PRIMARY, marginBottom: 8 },
   labelRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
@@ -970,11 +948,11 @@ const styles = StyleSheet.create({
     color: MO_TEXT_PRIMARY,
     marginBottom: 2,
   },
-
+  
   prioritiesSection: { marginTop: 16, borderTopWidth: 1, borderTopColor: '#F3F4F6', paddingTop: 24 },
   sectionTitle: { fontSize: 18, fontWeight: '700', color: MO_TEXT_PRIMARY, marginBottom: 4 },
   sectionSubtitle: { fontSize: 13, color: MO_TEXT_SECONDARY, lineHeight: 18, marginBottom: 20 },
-
+  
   priorityRow: { marginBottom: 24 },
   priorityLabel: { fontSize: 15, fontWeight: '600', color: MO_TEXT_PRIMARY, marginBottom: 12 },
   requirementItem: {
@@ -993,7 +971,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: MO_TEXT_SECONDARY,
   },
-
+  
   segmentedControl: {
     flexDirection: 'row',
     backgroundColor: '#F3F4F6',
@@ -1084,7 +1062,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   saveButtonText: { color: MO_WHITE, fontSize: 16, fontWeight: '700' },
-
+  
   successOverlay: {
     flex: 1,
     backgroundColor: MO_BG,

@@ -80,11 +80,20 @@ export type EmployerOffersWithApplicationsResponse = {
   items: EmployerOfferWithApplications[];
 };
 
-export const fetchJobs = async (query = '') => {
+export const fetchJobs = async (query = '', category = '', employmentType = '', workTime = '') => {
   try {
     const url = new URL(`${API_BASE_URL}/jobs`);
     if (query) {
       url.searchParams.append('q', query);
+    }
+    if (category && category !== 'Wszystkie') {
+      url.searchParams.append('category', category);
+    }
+    if (employmentType && employmentType !== 'Dowolna') {
+      url.searchParams.append('employment_type', employmentType);
+    }
+    if (workTime && workTime !== 'Dowolny') {
+      url.searchParams.append('work_time', workTime);
     }
     const response = await fetch(url.toString());
     if (!response.ok) {
@@ -239,7 +248,7 @@ export const applyForJob = async (jobId: string, candidateId: string, employerId
 
 export const checkHasApplied = async (jobId: string, candidateId: string) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/candidate/applications/check?jobId=${jobId}&candidateId=${candidateId}`, {
+    const response = await fetch(`${API_BASE_URL}/candidate/applications?jobId=${jobId}&candidateId=${candidateId}`, {
       headers: {
         'X-Candidate-Id': candidateId,
       },
@@ -250,7 +259,7 @@ export const checkHasApplied = async (jobId: string, candidateId: string) => {
     }
 
     const data = await response.json();
-    return data.applied || false;
+    return data && data.items && data.items.length > 0;
   } catch (error) {
     console.error('checkHasApplied Error:', error);
     return false;

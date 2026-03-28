@@ -47,6 +47,8 @@ import {
   questionnaireFormSchema,
   type QuestionnaireFormValues,
   BRANZE,
+  TYPY_UMOWY,
+  WYMIAR_ETATU,
   WOJEWODZTWA,
   POZIOMY_JEZYKOWE,
 } from '@/src/services/mPraca/candidate/data/questionnaireSchema';
@@ -407,12 +409,17 @@ export default function QuestionnaireScreen() {
   );
 
   // ── Preferencje (toggle chip) ──
-  const togglePreference = useCallback(
-    (category: string, currentValues: string[]) => {
-      const next = currentValues.includes(category)
-        ? currentValues.filter(c => c !== category)
-        : [...currentValues, category];
-      setValue('preferencje', next, {shouldValidate: true, shouldDirty: true});
+  const toggleChip = useCallback(
+    (fieldName: 'preferencje' | 'pref_typ_umowy' | 'pref_wymiar_etatu', category: string, currentValue: string | string[]) => {
+      if (fieldName === 'preferencje') {
+        const currentArr = Array.isArray(currentValue) ? currentValue : [];
+        const next = currentArr.includes(category)
+          ? currentArr.filter(c => c !== category)
+          : [...currentArr, category];
+        setValue(fieldName, next, {shouldValidate: true, shouldDirty: true});
+      } else {
+        setValue(fieldName, category, {shouldValidate: true, shouldDirty: true});
+      }
     },
     [setValue],
   );
@@ -579,8 +586,8 @@ export default function QuestionnaireScreen() {
 
         {/* ═══ PREFERENCJE BRANŻOWE ═══ */}
         <Section
-          title="Preferencje branżowe"
-          subtitle="Wybierz interesujące Cię branże"
+          title="Twoje preferencje"
+          subtitle="Wybierz interesujące Cię branże, rodzaje umów i wymiar pracy"
           icon={Briefcase}
           iconColor="#C026D3"
           iconBg="#FDF4FF"
@@ -597,12 +604,68 @@ export default function QuestionnaireScreen() {
                       <TouchableOpacity
                         key={branza}
                         style={[s.chip, selected && s.chipSelected]}
-                        onPress={() => togglePreference(branza, value)}
+                        onPress={() => toggleChip('preferencje', branza, value)}
                         activeOpacity={0.7}
                         accessibilityRole="checkbox"
                         accessibilityState={{checked: selected}}
                         accessibilityLabel={branza}>
                         <Text style={[s.chipText, selected && s.chipTextSelected]}>{branza}</Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </FormField>
+            )}
+          />
+
+          <View style={{height: 16}} />
+
+          <Controller
+            control={control}
+            name="pref_typ_umowy"
+            render={({field: {value: valTyp}}) => (
+              <FormField label="Rodzaj umowy" error={errors.pref_typ_umowy?.message} required>
+                <View style={s.chipsContainer}>
+                  {TYPY_UMOWY.map(typ => {
+                    const selected = valTyp === typ;
+                    return (
+                      <TouchableOpacity
+                        key={typ}
+                        style={[s.chip, selected && s.chipSelected]}
+                        onPress={() => toggleChip('pref_typ_umowy', typ, valTyp)}
+                        activeOpacity={0.7}
+                        accessibilityRole="radio"
+                        accessibilityState={{checked: selected}}
+                        accessibilityLabel={typ}>
+                        <Text style={[s.chipText, selected && s.chipTextSelected]}>{typ}</Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </FormField>
+            )}
+          />
+
+          <View style={{height: 16}} />
+
+          <Controller
+            control={control}
+            name="pref_wymiar_etatu"
+            render={({field: {value: valWymiar}}) => (
+              <FormField label="Wymiar etatu" error={errors.pref_wymiar_etatu?.message} required>
+                <View style={s.chipsContainer}>
+                  {WYMIAR_ETATU.map(wymiar => {
+                    const selected = valWymiar === wymiar;
+                    return (
+                      <TouchableOpacity
+                        key={wymiar}
+                        style={[s.chip, selected && s.chipSelected]}
+                        onPress={() => toggleChip('pref_wymiar_etatu', wymiar, valWymiar)}
+                        activeOpacity={0.7}
+                        accessibilityRole="radio"
+                        accessibilityState={{checked: selected}}
+                        accessibilityLabel={wymiar}>
+                        <Text style={[s.chipText, selected && s.chipTextSelected]}>{wymiar}</Text>
                       </TouchableOpacity>
                     );
                   })}

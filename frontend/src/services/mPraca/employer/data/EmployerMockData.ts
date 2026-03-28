@@ -16,6 +16,9 @@ export interface CandidateApplication {
   hasSanepid: boolean;
   cleanCriminalRecord: boolean;
   hasDrivingLicense: boolean;
+  prefTypUmowy: string[];
+  prefWymiarEtatu: string[];
+  prefBranze: string[];
   aiMatchScore: number; // 0 - 100
   status: AppStatus;
 }

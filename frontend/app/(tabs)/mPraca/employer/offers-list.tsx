@@ -20,6 +20,11 @@ type EmployerJobOffer = {
   applicationsCount: number;
 };
 
+<<<<<<< HEAD
+=======
+const COMPANY_NAME = 'VARriors';
+
+>>>>>>> 0d872ac89637e80f9d468e3c340362b6c2bf1915
 export default function EmployerOffersListScreen() {
   const router = useRouter();
   const [offers, setOffers] = useState<EmployerJobOffer[]>([]);
@@ -79,7 +84,7 @@ export default function EmployerOffersListScreen() {
       <ScrollView contentContainerStyle={styles.listContent}>
         <View style={styles.pageHeader}>
           <Text style={styles.pageTitleLabel}>Menedżer Aplikacji</Text>
-          <Text style={styles.pageTitle}>Twoje oferty pracy</Text>
+          <Text style={styles.pageTitle}>Nasze oferty pracy</Text>
           <Text style={styles.pageSubtitle}>
             Poniżej widzisz wszystkie ogłoszenia opublikowane dla firmy {companyName}.
           </Text>

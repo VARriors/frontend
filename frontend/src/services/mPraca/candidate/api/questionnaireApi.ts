@@ -122,6 +122,8 @@ type UserInputPayload = {
     nr_telefonu: string;
     email: string;
     preferencje: string[];
+    pref_typ_umowy: string;
+    pref_wymiar_etatu: string;
     obszar_poszukiwan: string;
     jezyki: string[];
     szkolenia: string[];
@@ -328,6 +330,8 @@ export const mapQuestionnaireToFormValues = (response: QuestionnaireResponse): Q
     nr_telefonu: extractFieldValue(fields, 'nr_telefonu', ''),
     email: extractFieldValue(fields, 'email', ''),
     preferencje: toStringArray(extractFieldValue(fields, 'preferencje', [])),
+    pref_typ_umowy: String(extractFieldValue(fields, 'pref_typ_umowy', '')),
+    pref_wymiar_etatu: String(extractFieldValue(fields, 'pref_wymiar_etatu', '')),
     wojewodztwo: parsedArea.wojewodztwo,
     miasto: parsedArea.miasto,
     doswiadczenia_zawodowe: toExperienceArray(extractFieldValue(fields, 'doswiadczenia_zawodowe', [])),
@@ -365,6 +369,8 @@ export const buildUserInputPayload = (data: QuestionnaireFormValues): UserInputP
     nr_telefonu: data.nr_telefonu,
     email: data.email,
     preferencje: data.preferencje,
+    pref_typ_umowy: data.pref_typ_umowy,
+    pref_wymiar_etatu: data.pref_wymiar_etatu,
     obszar_poszukiwan: `${data.wojewodztwo}${data.miasto ? `, ${data.miasto}` : ''}`,
     jezyki: (data.jezyki ?? []).map((j: Jezyk) => `${j.jezyk} (${j.poziom})`),
     szkolenia: (data.szkolenia ?? []).map((sz: Szkolenie) => sz.nazwa),

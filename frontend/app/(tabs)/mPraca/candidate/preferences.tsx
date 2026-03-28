@@ -2,6 +2,7 @@ import { setPreferencesCompleted } from '@/src/services/mPraca/data/OnboardingSt
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { BRANZE, TYPY_UMOWY, WYMIAR_ETATU } from '@/src/services/mPraca/candidate/data/questionnaireSchema';
 
 // Kolory zgodne z design systemem mObywatel
 const MO_BLUE = '#0052A5';
@@ -11,22 +12,12 @@ const MO_TEXT_PRIMARY = '#1F2937';
 const MO_TEXT_SECONDARY = '#6B7280';
 const MO_BORDER = '#D1D5DB';
 
-const CATEGORIES = [
-  'IT / Technologia',
-  'Gastronomia',
-  'Budownictwo',
-  'Administracja',
-  'Sprzedaż i Obsługa Klienta',
-  'Edukacja',
-  'Logistyka i Transport',
-  'Praca fizyczna',
-  'Księgowość',
-  'Służba Zdrowia'
-];
 
 export default function PreferencesScreen() {
   const router = useRouter();
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedContractType, setSelectedContractType] = useState<string>('');
+  const [selectedWorkTime, setSelectedWorkTime] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
 
@@ -40,7 +31,12 @@ export default function PreferencesScreen() {
         if (response.ok) {
           const data = await response.json();
           const currentPrefs = data.questionnaire?.fields?.preferencje?.value || [];
-          setSelectedCategories(currentPrefs);
+          const currentContractType = data.questionnaire?.fields?.pref_typ_umowy?.value || '';
+          const currentWorkTime = data.questionnaire?.fields?.pref_wymiar_etatu?.value || '';
+
+          setSelectedCategories(Array.isArray(currentPrefs) ? currentPrefs : [currentPrefs]);
+          setSelectedContractType(currentContractType);
+          setSelectedWorkTime(currentWorkTime);
         }
       } catch (error) {
         console.error("Błąd podczas pobierania aktualnych preferencji:", error);
@@ -71,6 +67,8 @@ export default function PreferencesScreen() {
         body: JSON.stringify({
           fields: {
             preferencje: selectedCategories,
+            pref_typ_umowy: selectedContractType,
+            pref_wymiar_etatu: selectedWorkTime,
           }
         }),
       });
@@ -107,29 +105,80 @@ export default function PreferencesScreen() {
         <View style={styles.headerContainer}>
           <Text style={styles.title}>Jakiej pracy szukasz?</Text>
           <Text style={styles.subtitle}>
-            Zaznacz branże, w których masz doświadczenie lub w których chciałbyś pracować. Dopasujemy do Ciebie najlepsze oferty.
+            Zaznacz branże, rodzaje umów i wymiar pracy, które Cię interesują. Dopasujemy do Ciebie najlepsze oferty.
           </Text>
         </View>
 
-        <View style={styles.chipsContainer}>
-          {CATEGORIES.map((category) => {
-            const isSelected = selectedCategories.includes(category);
-            return (
-              <TouchableOpacity
-                key={category}
-                accessibilityRole="checkbox"
-                accessibilityState={{ checked: isSelected }}
-                accessibilityLabel={category}
-                activeOpacity={0.7}
-                style={[styles.chip, isSelected && styles.chipSelected]}
-                onPress={() => toggleCategory(category)}
-              >
-                <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
-                  {category}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionLabel}>Branże</Text>
+          <View style={styles.chipsContainer}>
+            {BRANZE.map((category) => {
+              const isSelected = selectedCategories.includes(category);
+              return (
+                <TouchableOpacity
+                  key={category}
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: isSelected }}
+                  accessibilityLabel={category}
+                  activeOpacity={0.7}
+                  style={[styles.chip, isSelected && styles.chipSelected]}
+                  onPress={() => toggleCategory(category)}
+                >
+                  <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
+                    {category}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionLabel}>Rodzaj umowy</Text>
+          <View style={styles.chipsContainer}>
+            {TYPY_UMOWY.map((type) => {
+              const isSelected = selectedContractType === type;
+              return (
+                <TouchableOpacity
+                  key={type}
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked: isSelected }}
+                  accessibilityLabel={type}
+                  activeOpacity={0.7}
+                  style={[styles.chip, isSelected && styles.chipSelected]}
+                  onPress={() => setSelectedContractType(type)}
+                >
+                  <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
+                    {type}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionLabel}>Wymiar etatu</Text>
+          <View style={styles.chipsContainer}>
+            {WYMIAR_ETATU.map((time) => {
+              const isSelected = selectedWorkTime === time;
+              return (
+                <TouchableOpacity
+                  key={time}
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked: isSelected }}
+                  accessibilityLabel={time}
+                  activeOpacity={0.7}
+                  style={[styles.chip, isSelected && styles.chipSelected]}
+                  onPress={() => setSelectedWorkTime(time)}
+                >
+                  <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
+                    {time}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         </View>
       </ScrollView>
 
@@ -173,6 +222,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: MO_TEXT_SECONDARY,
     lineHeight: 24,
+  },
+  sectionContainer: {
+    marginBottom: 24,
+  },
+  sectionLabel: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: MO_TEXT_PRIMARY,
+    marginBottom: 16,
   },
   chipsContainer: {
     flexDirection: 'row',
